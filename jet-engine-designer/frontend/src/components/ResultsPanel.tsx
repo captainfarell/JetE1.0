@@ -1,0 +1,262 @@
+import React, { useState } from 'react';
+import { ChevronDown, ChevronRight, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import type { EngineResults } from '../types/engine';
+
+interface Props {
+  results: EngineResults;
+}
+
+interface MetricCardProps {
+  label: string;
+  value: string;
+  sub?: string;
+  color?: 'default' | 'green' | 'red' | 'yellow';
+}
+
+function MetricCard({ label, value, sub, color = 'default' }: MetricCardProps) {
+  const colorClasses = {
+    default: 'border-slate-600',
+    green:   'border-green-600 bg-green-900/20',
+    red:     'border-red-600 bg-red-900/20',
+    yellow:  'border-yellow-600 bg-yellow-900/20',
+  };
+  return (
+    <div className={`bg-slate-700/50 border rounded-lg p-3 ${colorClasses[color]}`}>
+      <div className="text-xs text-slate-400 mb-1">{label}</div>
+      <div className={`text-xl font-bold ${color === 'red' ? 'text-red-400' : color === 'green' ? 'text-green-400' : color === 'yellow' ? 'text-yellow-400' : 'text-white'}`}>
+        {value}
+      </div>
+      {sub && <div className="text-xs text-slate-500 mt-0.5">{sub}</div>}
+    </div>
+  );
+}
+
+function StationRow({ label, tt, pt }: { label: string; tt: number | null; pt: number | null }) {
+  if (tt === null && pt === null) return null;
+  return (
+    <tr className="station-row border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+      <td className="py-2 px-3 text-xs font-medium text-blue-300">{label}</td>
+      <td className="py-2 px-3 text-xs text-slate-300 text-right">
+        {tt !== null ? `${tt.toFixed(1)} K` : '—'}
+      </td>
+      <td className="py-2 px-3 text-xs text-slate-300 text-right">
+        {pt !== null ? `${pt.toFixed(2)} kPa` : '—'}
+      </td>
+    </tr>
+  );
+}
+
+export default function ResultsPanel({ results }: Props) {
+  const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const s = results.stations;
+  const g = results.geometry;
+
+  const thrustMarginColor =
+    results.thrust_margin_n > 0 ? 'green' :
+    results.thrust_margin_n < 0 ? 'red' : 'default';
+
+  const titPct = (results.tit_fraction * 100).toFixed(1);
+  const titBarColor = results.tit_fraction > 0.95 ? 'bg-red-500' :
+                      results.tit_fraction > 0.80 ? 'bg-yellow-500' : 'bg-green-500';
+
+  return (
+    <div className="space-y-5">
+      {/* Errors & Warnings */}
+      {results.errors.length > 0 && (
+        <div className="bg-red-900/30 border border-red-600 rounded-lg p-3 space-y-1">
+          {results.errors.map((e, i) => (
+            <div key={i} className="flex items-start gap-2 text-sm text-red-300">
+              <XCircle size={15} className="mt-0.5 shrink-0" />
+              <span>{e}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {results.warnings.length > 0 && (
+        <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-3 space-y-1">
+          {results.warnings.map((w, i) => (
+            <div key={i} className="flex items-start gap-2 text-sm text-yellow-300">
+              <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+              <span>{w}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Performance Summary */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Performance Summary</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <MetricCard
+            label="Net Thrust"
+            value={`${(results.net_thrust_n / 1000).toFixed(2)} kN`}
+            sub={`${results.net_thrust_n.toFixed(0)} N`}
+          />
+          <MetricCard
+            label="Thrust Required"
+            value={`${(results.thrust_required_n / 1000).toFixed(2)} kN`}
+            sub={`${results.thrust_required_n.toFixed(0)} N`}
+          />
+          <MetricCard
+            label="Thrust Margin"
+            value={`${(results.thrust_margin_n / 1000).toFixed(2)} kN`}
+            color={thrustMarginColor}
+            sub={results.thrust_margin_n >= 0 ? 'Sufficient thrust' : 'Thrust deficit!'}
+          />
+          <MetricCard
+            label="TSFC"
+            value={`${(results.tsfc_kg_n_h * 1e4).toFixed(3)}`}
+            sub="mg/(N·s)  [×10⁴ kg/(N·h)]"
+          />
+          <MetricCard
+            label="Fuel Flow"
+            value={`${results.fuel_flow_kg_h.toFixed(2)} kg/h`}
+            sub={`${results.fuel_flow_kg_s.toFixed(4)} kg/s`}
+          />
+          <MetricCard
+            label="Propulsive Efficiency"
+            value={`${(results.propulsive_efficiency * 100).toFixed(1)}%`}
+            sub="η_p = 2V₀/(Vⱼ + V₀)"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
+            <div className="text-xs text-slate-400 mb-1">Core Mass Flow</div>
+            <div className="text-lg font-bold text-white">{results.core_mass_flow_kg_s.toFixed(2)} kg/s</div>
+          </div>
+          {results.bypass_mass_flow_kg_s > 0 && (
+            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
+              <div className="text-xs text-slate-400 mb-1">Bypass Mass Flow</div>
+              <div className="text-lg font-bold text-white">{results.bypass_mass_flow_kg_s.toFixed(2)} kg/s</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* TIT Fraction */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Combustion Headroom (Tt3 / TIT)</h3>
+        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-slate-300">Tt3 = {s.tt3_k.toFixed(0)} K, TIT = {s.tt4_k.toFixed(0)} K</span>
+            <span className={`font-semibold ${
+              results.tit_fraction > 0.95 ? 'text-red-400' :
+              results.tit_fraction > 0.80 ? 'text-yellow-400' : 'text-green-400'
+            }`}>{titPct}% compression of TIT</span>
+          </div>
+          <div className="w-full bg-slate-600 rounded-full h-3">
+            <div
+              className={`h-3 rounded-full transition-all ${titBarColor}`}
+              style={{ width: `${Math.min(100, results.tit_fraction * 100).toFixed(1)}%` }}
+            />
+          </div>
+          <div className="text-xs text-slate-500 mt-1">
+            Fraction of TIT already consumed by compression. Higher = less headroom for combustion.
+          </div>
+          {results.tit_fraction >= 0.95 && (
+            <div className="text-xs text-red-400 mt-1 flex items-center gap-1">
+              <AlertTriangle size={12} />
+              Compressor exit near TIT — very little combustion headroom. Check OPR and TIT.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Cycle States */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Station Thermodynamic States</h3>
+        <div className="bg-slate-700/50 border border-slate-600 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-600/50">
+                <th className="py-2 px-3 text-left text-xs font-semibold text-slate-300">Station</th>
+                <th className="py-2 px-3 text-right text-xs font-semibold text-slate-300">Tt [K]</th>
+                <th className="py-2 px-3 text-right text-xs font-semibold text-slate-300">pt [kPa]</th>
+              </tr>
+            </thead>
+            <tbody>
+              <StationRow label="2 — Compressor inlet" tt={s.tt2_k} pt={s.pt2_kpa} />
+              <StationRow label="21 — Fan / LP exit" tt={s.tt21_k} pt={s.pt21_kpa} />
+              <StationRow label="25 — IP compressor exit" tt={s.tt25_k} pt={s.pt25_kpa} />
+              <StationRow label="3 — HP compressor exit" tt={s.tt3_k} pt={s.pt3_kpa} />
+              <StationRow label="4 — Combustor exit (TIT)" tt={s.tt4_k} pt={s.pt4_kpa} />
+              <StationRow label="45 — HP turbine exit" tt={s.tt45_k} pt={s.pt45_kpa} />
+              <StationRow label="5 — LP/IP turbine exit" tt={s.tt5_k} pt={s.pt5_kpa} />
+              <StationRow label="55 — LP turbine exit" tt={s.tt55_k} pt={s.pt55_kpa} />
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Nozzle Exit */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Nozzle Exit Conditions</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
+            <div className="text-xs text-slate-400 mb-1">Core Jet Velocity</div>
+            <div className="text-xl font-bold text-white">{s.vj_core_m_s.toFixed(1)} m/s</div>
+            <div className={`text-xs mt-1 ${s.core_nozzle_choked ? 'text-amber-400' : 'text-slate-500'}`}>
+              {s.core_nozzle_choked ? (
+                <><CheckCircle size={11} className="inline mr-1" />Choked (sonic throat)</>
+              ) : 'Subsonic exit'}
+            </div>
+          </div>
+          {s.vj_bypass_m_s !== null && (
+            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-3">
+              <div className="text-xs text-slate-400 mb-1">Bypass Jet Velocity</div>
+              <div className="text-xl font-bold text-white">{s.vj_bypass_m_s.toFixed(1)} m/s</div>
+              <div className={`text-xs mt-1 ${s.bypass_nozzle_choked ? 'text-amber-400' : 'text-slate-500'}`}>
+                {s.bypass_nozzle_choked ? (
+                  <><CheckCircle size={11} className="inline mr-1" />Choked</>
+                ) : 'Subsonic exit'}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Geometry Estimates */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Estimated Geometry</h3>
+        <div className="bg-slate-700/50 border border-slate-600 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <tbody>
+              {[
+                ['Inlet diameter', `${g.inlet_diameter_m.toFixed(3)} m`],
+                g.fan_diameter_m !== null ? ['Fan diameter', `${g.fan_diameter_m.toFixed(3)} m`] : null,
+                ['Core diameter', `${g.core_diameter_m.toFixed(3)} m`],
+                ['Engine length', `${g.engine_length_m.toFixed(3)} m`],
+              ].filter(Boolean).map((row, i) => (
+                <tr key={i} className="border-b border-slate-700/50">
+                  <td className="py-2 px-3 text-xs text-slate-400">{row![0]}</td>
+                  <td className="py-2 px-3 text-xs font-medium text-slate-200 text-right">{row![1]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Assumptions */}
+      <div>
+        <button
+          onClick={() => setAssumptionsOpen(!assumptionsOpen)}
+          className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors"
+        >
+          {assumptionsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          Model Assumptions ({results.assumptions.length})
+        </button>
+        {assumptionsOpen && (
+          <ul className="mt-2 space-y-1 bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+            {results.assumptions.map((a, i) => (
+              <li key={i} className="text-xs text-slate-400 flex items-start gap-2">
+                <span className="text-slate-600 shrink-0">•</span>
+                <span>{a}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
