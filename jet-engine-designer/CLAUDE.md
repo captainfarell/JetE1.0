@@ -36,7 +36,7 @@ jet-engine-designer/
     ├── types/engine.ts          ← TypeScript interfaces (must mirror Pydantic models exactly)
     ├── services/api.ts          ← Axios client: calculateEngine(), calculateEnvelope(), getDefaults()
     └── components/
-        ├── EngineConfig.tsx     ← Architecture inputs: engine type, spools, OPR, TIT, efficiencies, presets
+        ├── EngineConfig.tsx     ← Architecture inputs: engine type, spools, OPR, TIT, efficiencies (no presets)
         ├── AircraftConfig.tsx   ← Aircraft + flight condition inputs
         ├── EnvelopeConfig.tsx   ← Sweep range inputs + Generate button
         ├── EngineLayout.tsx     ← Hardcoded engine section list (replaces SVG diagram)
@@ -84,30 +84,30 @@ Errors from bad physics go in `errors: string[]` in the response body — not HT
 ## Engine configurations supported
 
 ### Turbojet
-| Sections | 1-spool | 2-spool | 3-spool |
+| Sections | 1-spool | 2-spool | 3-spool (disabled) |
 |---|---|---|---|
-| | Intake | Intake | Intake |
-| | HP Compressor | LP Compressor | LP Compressor |
-| | Combustor | HP Compressor | IP Compressor |
-| | HP Turbine | Combustor | HP Compressor |
-| | Exhaust | HP Turbine | Combustor |
-| | | LP Turbine | HP Turbine |
-| | | Exhaust | IP Turbine |
-| | | | LP Turbine |
-| | | | Exhaust |
+| | Intake | Intake | — |
+| | HP Compressor | LP Compressor | — |
+| | Combustor | HP Compressor | — |
+| | HP Turbine | Combustor | — |
+| | Exhaust | HP Turbine | — |
+| | | LP Turbine | — |
+| | | Exhaust | — |
 
-### Turbofan (1-spool not available — not used in commercial aviation)
-| Sections | 2-spool | 3-spool |
-|---|---|---|
-| | Intake | Intake |
-| | Fan | Fan |
-| | HP Compressor | IP Compressor |
-| | Combustor | HP Compressor |
-| | HP Turbine | Combustor |
-| | LP Turbine | HP Turbine |
-| | Exhaust | IP Turbine |
-| | | LP Turbine |
-| | | Exhaust |
+### Turbofan
+| Sections | 1-spool (disabled) | 2-spool | 3-spool |
+|---|---|---|---|
+| | — | Intake | Intake |
+| | — | Fan | Fan |
+| | — | HP Compressor | IP Compressor |
+| | — | Combustor | HP Compressor |
+| | — | HP Turbine | Combustor |
+| | — | LP Turbine | HP Turbine |
+| | — | Exhaust | IP Turbine |
+| | — | — | LP Turbine |
+| | — | — | Exhaust |
+
+**Disabled configurations:** 1-spool turbofan and 3-spool turbojet are disabled in the UI (no commercial production examples). Switching engine type auto-resets to a valid spool count.
 
 **These tables are hardcoded in `EngineLayout.tsx` — `LAYOUTS` dict, keyed by `"${engine_type}-${num_spools}"`.**
 Do not compute them dynamically; edit the dict directly.
@@ -131,7 +131,7 @@ Do not compute them dynamically; edit the dict directly.
 
 1. How Does a Jet Engine Work?
 2. The Brayton Cycle (4-card grid)
-3. Turbofan vs Turbojet (comparison table)
+3. Turbofan vs Turbojet (comparison table + 2-card note on disabled architectures)
 4. Key Parameters Explained
 5. **Further Reading** — three sub-groups:
    - Free resources (NASA Glenn, NIST WebBook, YouTube)
@@ -164,11 +164,18 @@ Tab order: 'learn' (default) → 'design' → 'results' → 'envelope'
 
 ## EngineConfig.tsx — key behaviours
 
-- 1-spool button is **disabled** when `engine_type === 'turbofan'` (tooltip explains why)
-- Switching to turbofan while on 1-spool automatically resets to 2 spools
-- Presets call `applyPreset()` which sets all fields at once via `onChange({...})`
+- **Quick Presets section removed** — presets are gone from the UI; `applyPreset()` function and logic remain in case they are re-added
+- 1-spool button **disabled** for turbofan; 3-spool button **disabled** for turbojet — tooltip: "No commercial production examples"
+- Switching to turbofan while on 1-spool auto-resets to 2 spools; switching to turbojet while on 3-spools auto-resets to 2 spools
+- Below the spool buttons: shows real engine examples for valid combos, or unavailability note for disabled combos
 - Spool PR split: manual override shown only when `num_spools >= 2` and `autoSplit === false`
 - Material TIT buttons set `tit_max_k` to midpoint of the material range
+
+**Engine examples per configuration (hardcoded in `EngineConfig.tsx`):**
+- `turbojet-1`: de Havilland Ghost, GE CJ610, JetCat P200, Microturbo TRI 60
+- `turbojet-2`: P&W JT3C, Bristol Siddeley Olympus 593, GE J79 (CJ805-3)
+- `turbofan-2`: CFM56, GE90, GEnx, Williams FJ44
+- `turbofan-3`: RR RB211, RR Trent 1000, Progress D-18T, Garrett ATF3
 
 ---
 
@@ -276,15 +283,20 @@ API returns `tsfc_kg_n_h` in kg/(N·h). Display as mg/(N·s): multiply by `1e6 /
 
 All styling via Tailwind utility classes — no custom CSS except in `index.css`:
 - Spin buttons removed from `<input type="number">`
-- Custom scrollbar (slate-800 track, slate-500 thumb)
-- `.station-row:hover` blue tint
+- Custom scrollbar (`app-bg` track, `app-muted` thumb)
+- `.station-row:hover` tinted via `app-muted/40`
 - `.tooltip-content` fade-in animation
 - Recharts axis/legend colour overrides
 
-**Colour palette roles:**
-- `slate-900` — page background
-- `slate-800` — card/panel background
-- `slate-700/50` — metric card, input background
+**Custom colour tokens** (defined in `tailwind.config.js`):
+- `app-bg` `#011F28` — page background
+- `app-surface` `#0c2c38` — card/panel background
+- `app-raised` `#183644` — table headers, sub-panel backgrounds
+- `app-muted` `#324E59` — inputs, badges, lightest panels
+- `app-border` `#1c3b4a` — borders
+- `app-text` `#E3DBD2` — primary text
+- `app-secondary` `#7F888D` — secondary/muted text
+- `app-dim` `#4a5e68` — very dim text (bullets, minor labels)
 - `blue-600` — primary action button
 - `blue-400` — section headings, active tab, accent text
 - `green/yellow/red` — status (positive margin / warning / error)

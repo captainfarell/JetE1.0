@@ -162,18 +162,18 @@ export default function App() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="min-h-screen bg-app-bg text-app-text flex flex-col">
 
       {/* ── Tab bar ── */}
-      <nav className="bg-slate-800/80 border-b border-slate-700 px-4 flex gap-1 pt-1">
+      <nav className="bg-app-surface/80 border-b border-app-border px-4 flex gap-1 pt-1">
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors border-b-2 -mb-px ${
               activeTab === tab.id
-                ? 'bg-slate-900 border-blue-500 text-blue-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                ? 'bg-app-bg border-blue-500 text-blue-400'
+                : 'border-transparent text-app-secondary hover:text-app-text hover:bg-app-muted/50'
             }`}
           >
             {tab.icon}
@@ -209,8 +209,8 @@ export default function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Left column: engine architecture */}
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-slate-700">
+              <div className="bg-app-surface border border-app-border rounded-xl p-5">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
                   Engine Architecture
                 </h2>
                 <EngineConfig
@@ -221,8 +221,8 @@ export default function App() {
               </div>
 
               {/* Right column: aircraft & flight */}
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-slate-700">
+              <div className="bg-app-surface border border-app-border rounded-xl p-5">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
                   Aircraft &amp; Flight Condition
                 </h2>
                 <AircraftConfig
@@ -238,7 +238,7 @@ export default function App() {
               <button
                 onClick={handleCalculate}
                 disabled={loadingCalc}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold px-10 py-3 rounded-xl text-sm transition-colors shadow-lg"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-app-muted disabled:cursor-not-allowed text-app-text font-semibold px-10 py-3 rounded-xl text-sm transition-colors shadow-lg"
               >
                 {loadingCalc ? (
                   <><Loader size={16} className="animate-spin" /> Calculating…</>
@@ -266,12 +266,12 @@ export default function App() {
           <div className="max-w-5xl mx-auto">
             {!results ? (
               <div className="text-center py-20">
-                <Cpu size={48} className="mx-auto text-slate-600 mb-4" />
-                <p className="text-slate-400 text-lg mb-2">No results yet</p>
-                <p className="text-slate-500 text-sm mb-5">Configure the engine and click Calculate on the Engine Design tab.</p>
+                <Cpu size={48} className="mx-auto text-app-muted mb-4" />
+                <p className="text-app-secondary text-lg mb-2">No results yet</p>
+                <p className="text-app-secondary text-sm mb-5">Configure the engine and click Calculate on the Engine Design tab.</p>
                 <button
                   onClick={() => setActiveTab('design')}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm"
+                  className="bg-blue-600 hover:bg-blue-500 text-app-text px-6 py-2 rounded-lg text-sm"
                 >
                   Go to Engine Design
                 </button>
@@ -279,7 +279,7 @@ export default function App() {
             ) : (
               <div className="space-y-5">
                 {/* Engine Layout */}
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                <div className="bg-app-surface border border-app-border rounded-xl p-5">
                   <EngineLayout
                     engine_type={formData.engine_type}
                     num_spools={formData.num_spools}
@@ -287,7 +287,7 @@ export default function App() {
                 </div>
 
                 {/* Performance Results */}
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                <div className="bg-app-surface border border-app-border rounded-xl p-5">
                   <ResultsPanel results={results} />
                 </div>
               </div>
@@ -298,10 +298,10 @@ export default function App() {
         {/* ════ ENVELOPE ANALYSIS TAB ════ */}
         {activeTab === 'envelope' && (
           <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
               {/* Config panel */}
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-slate-700">
+              <div className="lg:col-span-2 bg-app-surface border border-app-border rounded-xl p-5">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
                   Envelope Settings
                 </h2>
                 <EnvelopeConfig
@@ -312,20 +312,20 @@ export default function App() {
               </div>
 
               {/* Plots panel */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-3">
                 {!envelopeResults ? (
-                  <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 h-full flex flex-col items-center justify-center min-h-64">
-                    <BookOpen size={40} className="text-slate-600 mb-3" />
-                    <p className="text-slate-400 text-sm">
+                  <div className="bg-app-surface border border-app-border rounded-xl p-5 h-full flex flex-col items-center justify-center min-h-64">
+                    <BookOpen size={40} className="text-app-muted mb-3" />
+                    <p className="text-app-secondary text-sm">
                       Configure the sweep and click <strong>Generate Envelope</strong>.
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-app-secondary mt-1">
                       Uses current engine design parameters.
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-slate-700">
+                  <div className="bg-app-surface border border-app-border rounded-xl p-5">
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
                       Performance Plots
                     </h2>
                     <PlotsPanel results={envelopeResults} />
@@ -339,7 +339,7 @@ export default function App() {
         {/* ════ LEARN TAB ════ */}
         {activeTab === 'learn' && (
           <div className="max-w-4xl mx-auto">
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <div className="bg-app-surface border border-app-border rounded-xl p-6">
               <HelpSection />
             </div>
           </div>
@@ -348,7 +348,7 @@ export default function App() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="bg-slate-800 border-t border-slate-700 px-4 py-2 text-center text-xs text-slate-500">
+      <footer className="bg-app-surface border-t border-app-border px-4 py-2 text-center text-xs text-app-secondary">
         Jet Engine Designer · Brayton cycle analysis tool · ISA Standard Atmosphere · Ideal gas (γ = 1.4, cp = 1005 J/kg·K)
       </footer>
     </div>

@@ -16,8 +16,8 @@ export default function HelpSection() {
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Overview */}
       <section>
-        <h2 className="text-lg font-bold text-white mb-3">How Does a Jet Engine Work?</h2>
-        <p className="text-slate-300 text-sm leading-relaxed">
+        <h2 className="text-lg font-bold text-app-text mb-3">How Does a Jet Engine Work?</h2>
+        <p className="text-app-text text-sm leading-relaxed">
           A jet engine produces thrust by the reaction principle — Newton's Third Law. Air is
           ingested at the front, energy is added by burning fuel, and the hot gas is accelerated
           out of a nozzle at the back. The momentum increase of the air produces a forward force
@@ -29,20 +29,20 @@ export default function HelpSection() {
 
       {/* Brayton Cycle */}
       <section>
-        <h2 className="text-lg font-bold text-white mb-3">The Brayton Cycle</h2>
-        <p className="text-slate-400 text-xs mb-4">
+        <h2 className="text-lg font-bold text-app-text mb-3">The Brayton Cycle</h2>
+        <p className="text-app-secondary text-xs mb-4">
           Every gas turbine engine runs on the Brayton thermodynamic cycle: intake → compression → combustion → expansion.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card title="1. Intake" color="border-slate-600 bg-slate-700/30">
-            <p className="text-xs text-slate-400 leading-relaxed">
+          <Card title="1. Intake" color="border-app-border bg-app-muted/30">
+            <p className="text-xs text-app-secondary leading-relaxed">
               Incoming air is slowed and its kinetic energy is converted to pressure (ram
               compression). Even at subsonic speeds this raises total temperature and pressure
               slightly: <em>Tt₂ = T∞ · (1 + (γ−1)/2 · M²)</em>.
             </p>
           </Card>
           <Card title="2. Compressor" color="border-blue-800 bg-blue-900/20">
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-app-secondary leading-relaxed">
               Rotating compressor stages squeeze air to high pressure. More stages → higher
               OPR → better thermal efficiency. Each stage adds about 30% pressure (PR≈1.3
               per stage in axial compressors). The compressor requires shaft power from the
@@ -50,14 +50,14 @@ export default function HelpSection() {
             </p>
           </Card>
           <Card title="3. Combustor" color="border-amber-700 bg-amber-900/20">
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-app-secondary leading-relaxed">
               Fuel burns in the combustor, raising gas temperature to the turbine inlet
               temperature (TIT). More fuel → higher TIT → more energy available for thrust.
               TIT is strictly limited by turbine blade material strength (typically 1100–1600 K).
             </p>
           </Card>
           <Card title="4. Turbine + Nozzle" color="border-red-800 bg-red-900/20">
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-app-secondary leading-relaxed">
               The turbine extracts just enough work from the hot gas to drive the compressor
               (and fan in turbofans). The remaining pressure and temperature drives gas through
               the nozzle, accelerating it to produce thrust. Efficient turbines leave low
@@ -69,17 +69,17 @@ export default function HelpSection() {
 
       {/* Turbofan vs Turbojet */}
       <section>
-        <h2 className="text-lg font-bold text-white mb-3">Turbofan vs Turbojet</h2>
+        <h2 className="text-lg font-bold text-app-text mb-3">Turbofan vs Turbojet</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b border-slate-600">
-                <th className="text-left py-2 px-3 text-slate-400 font-semibold">Aspect</th>
+              <tr className="border-b border-app-border">
+                <th className="text-left py-2 px-3 text-app-secondary font-semibold">Aspect</th>
                 <th className="text-left py-2 px-3 text-blue-400 font-semibold">Turbofan</th>
                 <th className="text-left py-2 px-3 text-orange-400 font-semibold">Turbojet</th>
               </tr>
             </thead>
-            <tbody className="text-slate-300">
+            <tbody className="text-app-text">
               {[
                 ['Thrust generation', 'Fan + core nozzle', 'Core nozzle only'],
                 ['Subsonic fuel efficiency', 'Excellent (low TSFC)', 'Poor (high TSFC)'],
@@ -89,8 +89,8 @@ export default function HelpSection() {
                 ['Best application', 'Subsonic airliners, business jets', 'Supersonic fighters, some missiles'],
                 ['Examples', 'CFM56, Trent 1000, GE90', 'J57, Olympus, J85'],
               ].map(([aspect, fan, jet], i) => (
-                <tr key={i} className={`border-b border-slate-700/50 ${i % 2 === 0 ? 'bg-slate-800/30' : ''}`}>
-                  <td className="py-2 px-3 font-medium text-slate-400">{aspect}</td>
+                <tr key={i} className={`border-b border-app-border/50 ${i % 2 === 0 ? 'bg-app-surface/30' : ''}`}>
+                  <td className="py-2 px-3 font-medium text-app-secondary">{aspect}</td>
                   <td className="py-2 px-3">{fan}</td>
                   <td className="py-2 px-3">{jet}</td>
                 </tr>
@@ -98,11 +98,31 @@ export default function HelpSection() {
             </tbody>
           </table>
         </div>
+
+        {/* Unavailable architectures note */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+            <div className="text-xs font-semibold text-app-secondary uppercase tracking-wider mb-1">1-Spool Turbofan</div>
+            <p className="text-xs text-app-secondary leading-relaxed">
+              A single spool means the fan and core compressor share one shaft, forcing both to spin at the same speed.
+              The fan needs low RPM (large diameter, high tip-speed limits) while the core compressor needs high RPM for aerodynamic efficiency.
+              This conflict makes the design aerodynamically inefficient and impractical — all production turbofans use at least two spools to decouple fan and core speeds.
+            </p>
+          </div>
+          <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+            <div className="text-xs font-semibold text-app-secondary uppercase tracking-wider mb-1">3-Spool Turbojet</div>
+            <p className="text-xs text-app-secondary leading-relaxed">
+              Three spools on a turbojet add mechanical complexity (three concentric shafts, three sets of bearings) without a meaningful efficiency gain,
+              since turbojets already lack the bypass stream that makes multi-spool architecture worthwhile in turbofans.
+              The added weight and cost outweigh any marginal benefit, so no manufacturer has produced a 3-spool turbojet for commercial or widespread military service.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Key Parameters */}
       <section>
-        <h2 className="text-lg font-bold text-white mb-3">Key Parameters Explained</h2>
+        <h2 className="text-lg font-bold text-app-text mb-3">Key Parameters Explained</h2>
         <div className="space-y-3">
           {[
             {
@@ -126,9 +146,9 @@ export default function HelpSection() {
               def: 'The fraction of jet kinetic energy that is actually converted to useful thrust power. Maximum propulsive efficiency occurs when the jet velocity equals the flight speed (no kinetic energy wasted in the exhaust), but then thrust would be zero. High-BPR fans operating at low jet-to-flight-speed ratios achieve ηₚ above 70%.',
             },
           ].map(({ term, def }) => (
-            <div key={term} className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
+            <div key={term} className="bg-app-muted/30 border border-app-border rounded-lg p-3">
               <div className="text-sm font-semibold text-blue-300 mb-1">{term}</div>
-              <p className="text-xs text-slate-400 leading-relaxed">{def}</p>
+              <p className="text-xs text-app-secondary leading-relaxed">{def}</p>
             </div>
           ))}
         </div>
@@ -136,31 +156,31 @@ export default function HelpSection() {
 
       {/* Resources */}
       <section>
-        <h2 className="text-lg font-bold text-white mb-3">Further Reading</h2>
+        <h2 className="text-lg font-bold text-app-text mb-3">Further Reading</h2>
 
-        <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider font-semibold">Free resources</p>
+        <p className="text-xs text-app-secondary mb-3 uppercase tracking-wider font-semibold">Free resources</p>
         <div className="space-y-2 mb-5">
-          <div className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
-            <div className="text-sm font-semibold text-slate-200 mb-1">NASA Glenn — Beginner's Guide to Propulsion</div>
-            <div className="text-xs text-slate-400 font-mono">
+          <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+            <div className="text-sm font-semibold text-app-text mb-1">NASA Glenn — Beginner's Guide to Propulsion</div>
+            <div className="text-xs text-app-secondary font-mono">
               https://www.grc.nasa.gov/www/k-12/airplane/turbine.html
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-app-secondary mt-1">
               Free web resource covering Brayton cycle, compressors, turbines, thrust, and TSFC with interactive animations.
             </p>
           </div>
-          <div className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
-            <div className="text-sm font-semibold text-slate-200 mb-1">NIST Chemistry WebBook</div>
-            <div className="text-xs text-slate-400 font-mono">
+          <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+            <div className="text-sm font-semibold text-app-text mb-1">NIST Chemistry WebBook</div>
+            <div className="text-xs text-app-secondary font-mono">
               https://webbook.nist.gov
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-app-secondary mt-1">
               Free database of thermodynamic properties for aviation fuels and other substances.
             </p>
           </div>
-          <div className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
-            <div className="text-sm font-semibold text-slate-200 mb-1">YouTube Channels</div>
-            <p className="text-xs text-slate-400">
+          <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+            <div className="text-sm font-semibold text-app-text mb-1">YouTube Channels</div>
+            <p className="text-xs text-app-secondary">
               Search <em>"how jet engine works"</em> on YouTube for excellent animated explanations
               by channels like <strong>Real Engineering</strong>, <strong>Lesics</strong>, and
               <strong> Mustard</strong>. These complement the equations in this tool with intuitive
@@ -169,7 +189,7 @@ export default function HelpSection() {
           </div>
         </div>
 
-        <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider font-semibold">Textbooks (purchase required)</p>
+        <p className="text-xs text-app-secondary mb-3 uppercase tracking-wider font-semibold">Textbooks (purchase required)</p>
         <div className="space-y-2 mb-5">
           {[
             {
@@ -193,15 +213,15 @@ export default function HelpSection() {
               note: 'Performance sweep methodology, TSFC conventions, and off-design modelling principles.',
             },
           ].map(({ title, detail, note }) => (
-            <div key={title} className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
-              <div className="text-sm font-semibold text-slate-200 mb-0.5">{title}</div>
-              <div className="text-xs text-slate-500 font-mono mb-1">{detail}</div>
-              <p className="text-xs text-slate-500">{note}</p>
+            <div key={title} className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+              <div className="text-sm font-semibold text-app-text mb-0.5">{title}</div>
+              <div className="text-xs text-app-secondary font-mono mb-1">{detail}</div>
+              <p className="text-xs text-app-secondary">{note}</p>
             </div>
           ))}
         </div>
 
-        <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider font-semibold">Standards (purchase required)</p>
+        <p className="text-xs text-app-secondary mb-3 uppercase tracking-wider font-semibold">Standards (purchase required)</p>
         <div className="space-y-2">
           {[
             {
@@ -220,10 +240,10 @@ export default function HelpSection() {
               note: 'Basis for Jet-A fuel specification; LHV = 43.2 MJ/kg used in the combustor energy balance.',
             },
           ].map(({ title, detail, note }) => (
-            <div key={title} className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
-              <div className="text-sm font-semibold text-slate-200 mb-0.5">{title}</div>
-              <div className="text-xs text-slate-500 font-mono mb-1">{detail}</div>
-              <p className="text-xs text-slate-500">{note}</p>
+            <div key={title} className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+              <div className="text-sm font-semibold text-app-text mb-0.5">{title}</div>
+              <div className="text-xs text-app-secondary font-mono mb-1">{detail}</div>
+              <p className="text-xs text-app-secondary">{note}</p>
             </div>
           ))}
         </div>

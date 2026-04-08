@@ -90,13 +90,13 @@ jet-engine-designer/
         ├── types/engine.ts       ← TypeScript interfaces (mirrors Pydantic models)
         ├── services/api.ts       ← Axios API client (calculateEngine, calculateEnvelope, getDefaults)
         └── components/
-            ├── EngineConfig.tsx  ← Architecture inputs (type, spools, OPR, TIT, efficiencies, presets)
+            ├── EngineConfig.tsx  ← Architecture inputs (type, spools, OPR, TIT, efficiencies + per-config engine examples)
             ├── AircraftConfig.tsx← Aircraft and flight condition inputs
-            ├── EnvelopeConfig.tsx← Envelope sweep configuration
+            ├── EnvelopeConfig.tsx← Envelope sweep configuration (inline label/input rows)
             ├── ResultsPanel.tsx  ← Performance metrics, station table, geometry table, assumptions
-            ├── EngineDiagram.tsx ← SVG cross-section diagram (from geometry data)
+            ├── EngineLayout.tsx  ← Hardcoded engine section flow diagram
             ├── PlotsPanel.tsx    ← Recharts line plots (thrust, TSFC, TIT fraction vs speed/altitude)
-            └── HelpSection.tsx   ← Educational content, BPR interactive demo
+            └── HelpSection.tsx   ← Educational content, architecture notes, further reading
 ```
 
 ---

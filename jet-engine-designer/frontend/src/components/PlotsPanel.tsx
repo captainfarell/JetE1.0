@@ -66,8 +66,8 @@ function SinglePlot({ plot, title }: SinglePlotProps) {
   }) => {
     if (!active || !payload?.length) return null;
     return (
-      <div className="bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs shadow-xl">
-        <div className="text-slate-400 mb-1">{plot.x_label}: <strong className="text-white">{label} {plot.x_unit}</strong></div>
+      <div className="bg-app-surface border border-app-border rounded-lg p-2 text-xs shadow-xl">
+        <div className="text-app-secondary mb-1">{plot.x_label}: <strong className="text-app-text">{label} {plot.x_unit}</strong></div>
         {payload.map((p, i) => (
           p.value !== null && (
             <div key={i} style={{ color: p.color }}>
@@ -80,9 +80,9 @@ function SinglePlot({ plot, title }: SinglePlotProps) {
   };
 
   return (
-    <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+    <div className="bg-app-muted/50 border border-app-border rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-semibold text-slate-200">{title}</h4>
+        <h4 className="text-sm font-semibold text-app-text">{title}</h4>
         <div className="flex gap-2 flex-wrap justify-end">
           {plot.series.map((s, i) => (
             <button
@@ -90,7 +90,7 @@ function SinglePlot({ plot, title }: SinglePlotProps) {
               onClick={() => toggleSeries(s.name)}
               className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
                 hiddenSeries.has(s.name)
-                  ? 'border-slate-600 text-slate-600 bg-transparent'
+                  ? 'border-app-border text-app-dim bg-transparent'
                   : `border-current`
               }`}
               style={{ color: hiddenSeries.has(s.name) ? undefined : (s.is_limit_line ? LIMIT_COLOR : SERIES_COLORS[i % SERIES_COLORS.length]) }}
@@ -102,16 +102,16 @@ function SinglePlot({ plot, title }: SinglePlotProps) {
       </div>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data} margin={{ top: 5, right: 10, bottom: 20, left: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1c3b4a" />
           <XAxis
             dataKey="x"
-            tick={{ fill: '#94a3b8', fontSize: 10 }}
-            label={{ value: `${plot.x_label} (${plot.x_unit})`, position: 'insideBottom', offset: -12, fill: '#64748b', fontSize: 10 }}
+            tick={{ fill: '#7F888D', fontSize: 10 }}
+            label={{ value: `${plot.x_label} (${plot.x_unit})`, position: 'insideBottom', offset: -12, fill: '#7F888D', fontSize: 10 }}
             tickFormatter={formatX}
           />
           <YAxis
-            tick={{ fill: '#94a3b8', fontSize: 10 }}
-            label={{ value: `${yLabel} (${yUnit})`, angle: -90, position: 'insideLeft', offset: 10, fill: '#64748b', fontSize: 10 }}
+            tick={{ fill: '#7F888D', fontSize: 10 }}
+            label={{ value: `${yLabel} (${yUnit})`, angle: -90, position: 'insideLeft', offset: 10, fill: '#7F888D', fontSize: 10 }}
             tickFormatter={formatY}
             width={50}
           />
@@ -142,7 +142,7 @@ function SinglePlot({ plot, title }: SinglePlotProps) {
 export default function PlotsPanel({ results }: Props) {
   return (
     <div className="space-y-4">
-      <div className="text-xs text-slate-400 bg-slate-700/30 rounded-md p-2 mb-2">
+      <div className="text-xs text-app-secondary bg-app-muted/30 rounded-md p-2 mb-2">
         Click series buttons to toggle visibility. Hover over plots for exact values.
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">

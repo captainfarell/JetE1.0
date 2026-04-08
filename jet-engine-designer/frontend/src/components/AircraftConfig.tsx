@@ -28,7 +28,7 @@ function FieldLabel({ label, tooltip, defaults, paramKey }: FieldLabelProps) {
   const tip = tooltip ?? (desc ? `${desc.description}\n\nTypical: ${desc.typical_range}` : null);
 
   return (
-    <label className="flex items-center gap-1 text-sm font-medium text-slate-300 mb-1">
+    <label className="flex items-center gap-1 text-sm font-medium text-app-text mb-1">
       {label}
       {tip && (
         <span
@@ -38,7 +38,7 @@ function FieldLabel({ label, tooltip, defaults, paramKey }: FieldLabelProps) {
         >
           <Info size={13} className="text-blue-400 cursor-help" />
           {visible && (
-            <div className="tooltip-content absolute z-50 left-full ml-2 top-0 w-72 bg-slate-700 border border-slate-500 text-slate-200 text-xs rounded-lg p-3 shadow-xl whitespace-pre-line">
+            <div className="tooltip-content absolute z-50 left-full ml-2 top-0 w-72 bg-app-muted border border-app-secondary text-app-text text-xs rounded-lg p-3 shadow-xl whitespace-pre-line">
               {tip}
             </div>
           )}
@@ -56,7 +56,7 @@ interface SectionProps {
 function Section({ title, children }: SectionProps) {
   return (
     <div className="mb-5">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3 pb-1 border-b border-slate-700">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3 pb-1 border-b border-app-border">
         {title}
       </h3>
       {children}
@@ -82,7 +82,7 @@ function NumInput({
   return (
     <input
       type="number"
-      className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+      className="w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
       value={value}
       min={min}
       max={max}
@@ -156,10 +156,10 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             />
           </div>
         </div>
-        <div className="mt-2 flex gap-4 text-xs text-slate-400 bg-slate-700/50 rounded-md p-2">
-          <span>L/D = <strong className="text-slate-200">{ld}</strong></span>
+        <div className="mt-2 flex gap-4 text-xs text-app-secondary bg-app-muted/50 rounded-md p-2">
+          <span>L/D = <strong className="text-app-text">{ld}</strong></span>
           {estimatedDrag && (
-            <span>Estimated cruise drag = <strong className="text-slate-200">{estimatedDrag} N</strong></span>
+            <span>Estimated cruise drag = <strong className="text-app-text">{estimatedDrag} N</strong></span>
           )}
         </div>
       </Section>
@@ -176,7 +176,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
               max={3000}
               step={10}
             />
-            <div className="text-xs text-slate-500 mt-1">
+            <div className="text-xs text-app-secondary mt-1">
               ≈ {(formData.cruise_speed_kmh / 3.6).toFixed(0)} m/s
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
               max={20000}
               step={100}
             />
-            <div className="text-xs text-slate-500 mt-1">
+            <div className="text-xs text-app-secondary mt-1">
               ISA T = {isaT.toFixed(1)} K ({(isaT - 273.15).toFixed(1)} °C)
             </div>
           </div>
@@ -214,14 +214,14 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             {formData.ambient_temperature_override_k !== null && (
               <button
                 onClick={() => onChange({ ambient_temperature_override_k: null })}
-                className="text-xs text-slate-400 hover:text-red-400 whitespace-nowrap"
+                className="text-xs text-app-secondary hover:text-red-400 whitespace-nowrap"
               >
                 Reset to ISA
               </button>
             )}
           </div>
           {formData.ambient_temperature_override_k === null && (
-            <div className="text-xs text-slate-500 mt-1">Using ISA: {isaT.toFixed(1)} K</div>
+            <div className="text-xs text-app-secondary mt-1">Using ISA: {isaT.toFixed(1)} K</div>
           )}
         </div>
       </Section>
@@ -237,7 +237,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
               onChange={() => onChange({ compute_thrust_from_drag: true, target_thrust_n: null })}
               className="accent-blue-500"
             />
-            <span className="text-sm text-slate-300">Compute from aircraft drag (L/D method)</span>
+            <span className="text-sm text-app-text">Compute from aircraft drag (L/D method)</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -247,7 +247,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
               onChange={() => onChange({ compute_thrust_from_drag: false })}
               className="accent-blue-500"
             />
-            <span className="text-sm text-slate-300">Specify target thrust manually</span>
+            <span className="text-sm text-app-text">Specify target thrust manually</span>
           </label>
         </div>
 

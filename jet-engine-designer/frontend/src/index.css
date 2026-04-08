@@ -18,19 +18,19 @@ input[type='number'] {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #011F28;
 }
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #324E59;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #7F888D;
 }
 
 /* Station table hover */
 .station-row:hover td {
-  background-color: rgba(59, 130, 246, 0.08);
+  background-color: rgba(50, 78, 89, 0.4);
 }
 
 /* Tooltip animation */
@@ -45,9 +45,9 @@ input[type='number'] {
 
 /* Recharts axis text */
 .recharts-cartesian-axis-tick-value {
-  fill: #94a3b8;
+  fill: #7F888D;
   font-size: 11px;
 }
 .recharts-legend-item-text {
-  color: #cbd5e1 !important;
+  color: #E3DBD2 !important;
 }
