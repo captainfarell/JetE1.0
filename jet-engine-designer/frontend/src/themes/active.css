@@ -1,0 +1,11 @@
+/* ── Active palette ──────────────────────────────────────────────────────── */
+/* To swap palettes, change the import in main.tsx to point at a             */
+/* different file in this directory, e.g.:                                   */
+/*   import './themes/palette-original.css'                                  */
+/*   import './themes/palette-3125.css'                                      */
+/*                                                                            */
+/* Available palettes:                                                        */
+/*   palette-original.css  — dark teal / navy (original)                     */
+/*   palette-3125.css      — earthy green / olive-black                      */
+
+@import './palette-3125.css';

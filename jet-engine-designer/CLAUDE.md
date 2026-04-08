@@ -284,11 +284,28 @@ API returns `tsfc_kg_n_h` in kg/(N·h). Display as mg/(N·s): multiply by `1e6 /
 All styling via Tailwind utility classes — no custom CSS except in `index.css`:
 - Spin buttons removed from `<input type="number">`
 - Custom scrollbar (`app-bg` track, `app-muted` thumb)
-- `.station-row:hover` tinted via `app-muted/40`
+- `.station-row:hover` tinted via `--station-hover-bg` CSS variable
 - `.tooltip-content` fade-in animation
-- Recharts axis/legend colour overrides
+- Recharts axis/legend colour overrides via `--recharts-axis-fill` / `--recharts-legend`
 
-**Custom colour tokens** (defined in `tailwind.config.js`):
+### Theming / palette swapping
+
+Colours are defined as CSS custom properties. To switch the entire palette, edit one line:
+
+```
+frontend/src/themes/
+├── active.css          ← change the @import here to switch palettes
+├── palette-original.css  — dark teal / navy (original)
+└── palette-3125.css    — earthy green / olive-black (colorpalettes.net #3125)
+```
+
+To try a new palette:
+1. Create `frontend/src/themes/palette-XXXX.css` — define all `--app-*` vars (copy an existing file as template)
+2. Change the `@import` in `active.css` to point at the new file
+
+`tailwind.config.js` reads `var(--app-*)` — no changes needed there when swapping palettes.
+
+**Custom colour tokens** (resolved at runtime via CSS variables, declared in active palette file):
 - `app-bg` `#011F28` — page background
 - `app-surface` `#0c2c38` — card/panel background
 - `app-raised` `#183644` — table headers, sub-panel backgrounds

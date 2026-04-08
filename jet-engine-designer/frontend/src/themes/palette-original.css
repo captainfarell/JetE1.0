@@ -1,0 +1,13 @@
+/* ── Original palette (dark teal / navy) ─────────────────────────────────── */
+/* Variables stored as bare RGB channels so Tailwind opacity modifiers work.  */
+/* Usage in CSS: rgb(var(--app-bg) / 0.5)                                     */
+:root {
+  --app-bg:             1 31 40;      /* #011F28 */
+  --app-surface:        12 44 56;     /* #0c2c38 */
+  --app-raised:         24 54 68;     /* #183644 */
+  --app-muted:          50 78 89;     /* #324E59 */
+  --app-border:         28 59 74;     /* #1c3b4a */
+  --app-text:           227 219 210;  /* #E3DBD2 */
+  --app-secondary:      127 136 141;  /* #7F888D */
+  --app-dim:            74 94 104;    /* #4a5e68 */
+}

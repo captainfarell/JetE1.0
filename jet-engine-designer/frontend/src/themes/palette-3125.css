@@ -1,0 +1,17 @@
+/* ── Palette #3125 (earthy green / olive-black) ──────────────────────────── */
+/* Source: https://colorpalettes.net/color-palette-3125/                      */
+/* Base 5: #161811  #3b4834  #6c7355  #989e8f  #c1c9cd                       */
+/* Tweaks: app-surface / app-raised are derived intermediates for legible     */
+/* card/panel layering; app-border is a subtle separator.                     */
+/* Variables stored as bare RGB channels so Tailwind opacity modifiers work.  */
+/* Usage in CSS: rgb(var(--app-bg) / 0.5)                                     */
+:root {
+  --app-bg:             22 24 17;     /* #161811 — palette darkest            */
+  --app-surface:        30 35 26;     /* #1e231a — derived, card background   */
+  --app-raised:         45 54 41;     /* #2d3629 — derived, table headers     */
+  --app-muted:          59 72 52;     /* #3b4834 — palette #2, inputs/badges  */
+  --app-border:         37 44 34;     /* #252c22 — derived, borders           */
+  --app-text:           193 201 205;  /* #c1c9cd — palette lightest           */
+  --app-secondary:      152 158 143;  /* #989e8f — palette #4                 */
+  --app-dim:            108 115 85;   /* #6c7355 — palette #3                 */
+}

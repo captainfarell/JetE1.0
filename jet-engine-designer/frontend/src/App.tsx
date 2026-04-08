@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Cpu, BookOpen, AlertTriangle, XCircle, Loader, Play, HelpCircle } from 'lucide-react';
+import { Cpu, BookOpen, AlertTriangle, XCircle, Loader, Play, HelpCircle, GitBranch } from 'lucide-react';
 
 import EngineConfig from './components/EngineConfig';
 import AircraftConfig from './components/AircraftConfig';
@@ -9,6 +9,7 @@ import ResultsPanel from './components/ResultsPanel';
 import EngineLayout from './components/EngineLayout';
 import PlotsPanel from './components/PlotsPanel';
 import HelpSection from './components/HelpSection';
+import WorkflowSection from './components/WorkflowSection';
 
 import { calculateEngine, calculateEnvelope, getDefaults } from './services/api';
 import type {
@@ -47,7 +48,7 @@ const DEFAULT_FORM: CalculateRequest = {
 };
 
 // ─── Tab definition ───────────────────────────────────────────────────────────
-type TabId = 'design' | 'results' | 'envelope' | 'learn';
+type TabId = 'design' | 'results' | 'envelope' | 'learn' | 'workflow';
 
 interface Tab {
   id: TabId;
@@ -57,6 +58,7 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'learn',    label: 'How does a jet engine work?', icon: <HelpCircle size={15} /> },
+  { id: 'workflow', label: 'Workflow',                    icon: <GitBranch size={15} /> },
   { id: 'design',   label: 'Engine Design',               icon: <Cpu size={15} /> },
   { id: 'results',  label: 'Results & Diagram',           icon: <Play size={15} /> },
   { id: 'envelope', label: 'Envelope Analysis',           icon: <BookOpen size={15} /> },
@@ -345,11 +347,29 @@ export default function App() {
           </div>
         )}
 
+        {/* ════ WORKFLOW TAB ════ */}
+        {activeTab === 'workflow' && (
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-app-surface border border-app-border rounded-xl p-6">
+              <WorkflowSection />
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* ── Footer ── */}
       <footer className="bg-app-surface border-t border-app-border px-4 py-2 text-center text-xs text-app-secondary">
-        Jet Engine Designer · Brayton cycle analysis tool · ISA Standard Atmosphere · Ideal gas (γ = 1.4, cp = 1005 J/kg·K)
+        Created by{' '}
+        <a
+          href="https://www.linkedin.com/in/andrzej-jugowicz-47395396/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-400 hover:text-blue-300 underline"
+        >
+          Andrzej Jugowicz
+        </a>
+        {' '}and Claude
       </footer>
     </div>
   );
