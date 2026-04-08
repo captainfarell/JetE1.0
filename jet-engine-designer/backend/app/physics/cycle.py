@@ -25,11 +25,16 @@ Reference station numbering (ARP755):
 import math
 from typing import Optional
 
-from app.models.inputs import CalculateRequest
+import numpy as np
+
+from app.models.inputs import CalculateRequest, EnvelopeRequest
 from app.models.outputs import (
+    EnvelopeResults,
     EngineResults,
     GeometryComponent,
     GeometryData,
+    PlotData,
+    PlotSeries,
     StationData,
 )
 from app.physics.atmosphere import standard_atmosphere
@@ -306,9 +311,12 @@ def _estimate_geometry(
             hpc_stages = _num_stages(OPR / FPR) if FPR > 1.0 else _num_stages(OPR)
 
     # Turbine stage counts (approximate: same as compressor but fewer stages per PR)
+    # HP turbine always exists (single shaft minimum)
     hpt_stages = max(1, math.ceil(hpc_stages / 2))
+    # IP turbine only on 3-spool (matches IP compressor)
     ipt_stages = max(1, math.ceil(ipc_stages / 2)) if ipc_stages > 0 else 0
-    lpt_stages = max(1, math.ceil((lpc_stages + fan_stages) / 2))
+    # LP turbine only on 2+ spool configs where there is a dedicated LP shaft (fan or LPC)
+    lpt_stages = max(1, math.ceil((lpc_stages + fan_stages) / 2)) if (num_spools >= 2 and (lpc_stages + fan_stages) > 0) else 0
 
     # ── Axial length fractions per component (in D_inlet units) ──────────────
     # These are proportional lengths; we'll normalise at the end
@@ -855,7 +863,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     has_55 = ns == 3
 
     # Map final turbine exit to correct field
-    tt5_val  = Tt5  if not (ns == 3) else Tt5
+    tt5_val  = Tt5
     tt55_val = Tt55 if ns == 3 else None
 
     stations = StationData(
@@ -926,10 +934,6 @@ def calculate_envelope(request):  # type: ignore[no-untyped-def]
     EnvelopeResults
         Five PlotData objects covering both sweeps.
     """
-    from app.models.inputs  import EnvelopeRequest
-    from app.models.outputs import EnvelopeResults, PlotData, PlotSeries
-    import numpy as np
-
     design = request.design
 
     # ── Speed Sweep ───────────────────────────────────────────────────────────
@@ -951,7 +955,7 @@ def calculate_envelope(request):  # type: ignore[no-untyped-def]
         else:
             thrust_speed.append(res.net_thrust_n)
             thrust_req_speed.append(res.thrust_required_n)
-            tsfc_speed.append(res.tsfc_kg_n_h * 1e4)   # scale to mg/(N·s) for display
+            tsfc_speed.append(res.tsfc_kg_n_h * (1e6 / 3600))   # convert kg/(N·h) → mg/(N·s)
             tit_frac_speed.append(res.tit_fraction * 100.0)
 
     thrust_vs_speed = PlotData(
@@ -1000,7 +1004,7 @@ def calculate_envelope(request):  # type: ignore[no-untyped-def]
             tsfc_alt.append(None)
         else:
             thrust_alt.append(res.net_thrust_n)
-            tsfc_alt.append(res.tsfc_kg_n_h * 1e4)
+            tsfc_alt.append(res.tsfc_kg_n_h * (1e6 / 3600))   # convert kg/(N·h) → mg/(N·s)
 
     thrust_vs_altitude = PlotData(
         x_values=altitudes,

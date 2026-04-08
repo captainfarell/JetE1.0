@@ -41,10 +41,12 @@ function getDashArray(name: string): string {
 const STATIONS: { label: string; fraction: number }[] = [
   { label: '2',  fraction: 0.08 },
   { label: '21', fraction: 0.20 },
+  { label: '25', fraction: 0.31 },
   { label: '3',  fraction: 0.42 },
   { label: '4',  fraction: 0.52 },
   { label: '45', fraction: 0.60 },
   { label: '5',  fraction: 0.72 },
+  { label: '55', fraction: 0.82 },
   { label: '9',  fraction: 0.95 },
 ];
 
@@ -228,15 +230,15 @@ function SVGDiagram({ components, inletDiameter, engineLength, svgRef, title }: 
         </text>
       </g>
 
-      {/* Legend */}
-      {(['Fan', 'HP Compressor', 'Combustor', 'HP Turbine', 'LP Turbine', 'Bypass Duct'] as const).map((name, i) => (
-        <g key={name} transform={`translate(${PAD_L + i * 108}, ${SVG_H - 12})`}>
+      {/* Legend — derived from actual components so it matches the engine configuration */}
+      {components.map((comp, i) => (
+        <g key={comp.name} transform={`translate(${PAD_L + i * 108}, ${SVG_H - 12})`}>
           <rect x={0} y={-7} width={12} height={8}
-            fill={name === 'Bypass Duct' ? 'rgba(14,165,233,0.2)' : getColor(name)}
-            stroke={name === 'Bypass Duct' ? '#38bdf8' : 'none'}
+            fill={comp.name === 'Bypass Duct' ? 'rgba(14,165,233,0.2)' : getColor(comp.name)}
+            stroke={comp.name === 'Bypass Duct' ? '#38bdf8' : 'none'}
             strokeWidth={1}
           />
-          <text x={15} y={0} fill="#64748b" fontSize={8} fontFamily="system-ui">{name}</text>
+          <text x={15} y={0} fill="#64748b" fontSize={8} fontFamily="system-ui">{comp.name}</text>
         </g>
       ))}
     </svg>

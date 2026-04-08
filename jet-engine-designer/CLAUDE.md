@@ -64,7 +64,31 @@ All thermodynamic calculations are in `backend/app/physics/cycle.py`. The key fu
 - Fuel: Jet-A, `LHV = 43.2 MJ/kg`
 - Per-stage axial compressor PR assumption: `1.3`
 
-**`tit_fraction`** in results = `Tt3 / TIT` (compressor exit / turbine inlet temp). Measures combustion headroom — not a material utilisation fraction. Approaches 1.0 when OPR is so high that there is little room to add heat.
+**`tit_fraction`** in results = `Tt3 / TIT_max` (compressor exit / turbine inlet temp). Measures combustion headroom — not a material utilisation fraction. Approaches 1.0 when OPR is so high that there is little room to add heat.
+
+**TSFC display units**: the API returns `tsfc_kg_n_h` in kg/(N·h). The frontend and envelope plots convert to mg/(N·s) by multiplying by `1e6 / 3600` (≈ 277.78). Do not use `× 1e4` — that is dimensionally wrong.
+
+## Geometry Rules for Engine Components (`_estimate_geometry`)
+
+Component stage counts follow these rules:
+
+| Component | Present when |
+|---|---|
+| Fan | `engine_type == "turbofan"` |
+| LP Compressor | turbojet 2- or 3-spool |
+| IP Compressor | any 3-spool |
+| HP Compressor | always |
+| HP Turbine | always |
+| IP Turbine | any 3-spool (`ipc_stages > 0`) |
+| LP Turbine | 2- or 3-spool only (`num_spools >= 2` and fan or LPC stages exist) |
+| Bypass Duct | turbofan with `BPR > 0` |
+
+**Critical rule**: LP Turbine must never appear for 1-spool engines (turbojet or turbofan). The condition in `_estimate_geometry` is:
+```python
+lpt_stages = max(1, ceil((lpc_stages + fan_stages) / 2)) if (num_spools >= 2 and (lpc_stages + fan_stages) > 0) else 0
+```
+
+The SVG legend in `EngineDiagram.tsx` is derived from `component_positions` (dynamic), not a hardcoded list. Do not revert this to a hardcoded array.
 
 ## API Endpoints
 
@@ -98,7 +122,7 @@ Errors (bad physics) are returned as `errors: string[]` inside the response body
 ### New engine architecture (e.g. turboprop, afterburner)
 1. Add type string to `engine_type` field in `models/inputs.py`
 2. Add `elif eng == "..."` block in `calculate_engine()` with work balance equations
-3. Add geometry logic to `_estimate_geometry()`
+3. Add geometry logic to `_estimate_geometry()` following the component presence rules above
 4. Add preset to `ENGINE_PRESETS` in `config/defaults.py`
 5. Update dropdown in `frontend/src/components/EngineConfig.tsx`
 
@@ -145,7 +169,11 @@ App.tsx (formData, results, envelopeResults)
   └── PlotsPanel(envelopeResults)
 ```
 
-`EngineDiagram` draws from `results.geometry.component_positions` — normalised fractions, not hardcoded pixel positions. Adding new engine components requires updating `_estimate_geometry()` to emit them; the SVG renderer handles them automatically by name → colour mapping.
+**Tab order and landing page**: the first tab is "How does a jet engine work?" (`id: 'learn'`) and is the default landing page (`activeTab` initialised to `'learn'`). Tab order: Learn → Engine Design → Results & Diagram → Envelope Analysis.
+
+`EngineDiagram` draws from `results.geometry.component_positions` — normalised fractions, not hardcoded pixel positions. Adding new engine components requires updating `_estimate_geometry()` to emit them; the SVG renderer and legend handle them automatically by name → colour mapping.
+
+Number inputs (`<input type="number">`) have spin buttons (browser up/down arrows) suppressed globally via `index.css` using `-webkit-appearance: none` and `-moz-appearance: textfield`.
 
 ## Git / Deployment Notes
 

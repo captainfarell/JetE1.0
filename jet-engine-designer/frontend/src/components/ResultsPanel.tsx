@@ -105,8 +105,8 @@ export default function ResultsPanel({ results }: Props) {
           />
           <MetricCard
             label="TSFC"
-            value={`${(results.tsfc_kg_n_h * 1e4).toFixed(3)}`}
-            sub="mg/(N·s)  [×10⁴ kg/(N·h)]"
+            value={`${(results.tsfc_kg_n_h * (1e6 / 3600)).toFixed(3)} mg/(N·s)`}
+            sub={`${results.tsfc_kg_n_h.toFixed(5)} kg/(N·h)`}
           />
           <MetricCard
             label="Fuel Flow"

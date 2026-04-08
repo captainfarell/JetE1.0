@@ -100,7 +100,7 @@ class EngineResults(BaseModel):
     geometry: GeometryData
 
     # ── Limits & Efficiency ──────────────────────────────────────────────────
-    tit_fraction: float          # TIT_actual / TIT_max (should be ≤ 1)
+    tit_fraction: float          # Tt3 / TIT_max — fraction of TIT already consumed by compression
     propulsive_efficiency: float
 
     # ── Diagnostics ──────────────────────────────────────────────────────────

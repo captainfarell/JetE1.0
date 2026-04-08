@@ -56,10 +56,10 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { id: 'design',   label: 'Engine Design',     icon: <Cpu size={15} /> },
-  { id: 'results',  label: 'Results & Diagram',  icon: <Play size={15} /> },
-  { id: 'envelope', label: 'Envelope Analysis',  icon: <BookOpen size={15} /> },
-  { id: 'learn',    label: 'Learn',              icon: <HelpCircle size={15} /> },
+  { id: 'learn',    label: 'How does a jet engine work?', icon: <HelpCircle size={15} /> },
+  { id: 'design',   label: 'Engine Design',               icon: <Cpu size={15} /> },
+  { id: 'results',  label: 'Results & Diagram',           icon: <Play size={15} /> },
+  { id: 'envelope', label: 'Envelope Analysis',           icon: <BookOpen size={15} /> },
 ];
 
 // ─── Validation panel ─────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ export default function App() {
   const [defaults, setDefaults] = useState<DefaultsResponse | null>(null);
   const [results, setResults] = useState<EngineResults | null>(null);
   const [envelopeResults, setEnvelopeResults] = useState<EnvelopeResults | null>(null);
-  const [activeTab, setActiveTab] = useState<TabId>('design');
+  const [activeTab, setActiveTab] = useState<TabId>('learn');
   const [loadingCalc, setLoadingCalc] = useState(false);
   const [loadingEnvelope, setLoadingEnvelope] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -159,7 +159,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
 
       {/* ── Header ── */}
-      <header className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+      <header className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 rounded-lg p-2">
             <Cpu size={20} className="text-white" />
@@ -169,13 +169,6 @@ export default function App() {
             <p className="text-xs text-slate-400">Brayton Cycle Thermodynamic Analysis</p>
           </div>
         </div>
-        <button
-          onClick={() => setActiveTab('learn')}
-          className="flex items-center gap-1.5 text-xs bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 rounded-md px-3 py-2 transition-colors"
-        >
-          <HelpCircle size={13} />
-          How does a jet engine work?
-        </button>
       </header>
 
       {/* ── Tab bar ── */}
