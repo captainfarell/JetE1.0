@@ -6,7 +6,7 @@ import AircraftConfig from './components/AircraftConfig';
 import EnvelopeConfig from './components/EnvelopeConfig';
 import type { EnvelopeConfig as EnvelopeConfigData } from './components/EnvelopeConfig';
 import ResultsPanel from './components/ResultsPanel';
-import EngineDiagram from './components/EngineDiagram';
+import EngineLayout from './components/EngineLayout';
 import PlotsPanel from './components/PlotsPanel';
 import HelpSection from './components/HelpSection';
 
@@ -107,6 +107,12 @@ export default function App() {
 
   const updateForm = useCallback((updates: Partial<CalculateRequest>) => {
     setFormData(prev => ({ ...prev, ...updates }));
+    // Clear results when the engine topology changes — the old diagram would show
+    // components (e.g. LP Turbine) that belong to a different architecture.
+    if ('engine_type' in updates || 'num_spools' in updates) {
+      setResults(null);
+      setEnvelopeResults(null);
+    }
   }, []);
 
   async function handleCalculate() {
@@ -157,19 +163,6 @@ export default function App() {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
-
-      {/* ── Header ── */}
-      <header className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-600 rounded-lg p-2">
-            <Cpu size={20} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white leading-tight">Jet Engine Designer</h1>
-            <p className="text-xs text-slate-400">Brayton Cycle Thermodynamic Analysis</p>
-          </div>
-        </div>
-      </header>
 
       {/* ── Tab bar ── */}
       <nav className="bg-slate-800/80 border-b border-slate-700 px-4 flex gap-1 pt-1">
@@ -285,9 +278,12 @@ export default function App() {
               </div>
             ) : (
               <div className="space-y-5">
-                {/* Engine Diagram */}
+                {/* Engine Layout */}
                 <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-                  <EngineDiagram results={results} />
+                  <EngineLayout
+                    engine_type={formData.engine_type}
+                    num_spools={formData.num_spools}
+                  />
                 </div>
 
                 {/* Performance Results */}

@@ -1,80 +1,4 @@
-import React, { useState } from 'react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts';
-
-// ─── Simple qualitative BPR demo (no API call) ────────────────────────────────
-function qualitativePerformance(bpr: number) {
-  // Simplified, physically-motivated relationships for demonstration only
-  const v0 = 140;   // typical cruise velocity m/s
-  const m_core = 50;
-  const vj_core = 500 - bpr * 15;                          // core jet velocity decreases with BPR
-  const vj_bypass = bpr > 0 ? v0 * 1.5 + 50 / (bpr + 1) : 0;  // bypass jet velocity
-  const m_total = m_core * (1 + bpr);
-
-  const thrust = m_core * (vj_core - v0) + m_core * bpr * (vj_bypass - v0);
-  const fuelFlow = m_core * 1.005 * (1400 - 700) / 43200;   // rough, constant
-  const tsfc = fuelFlow / Math.max(1, thrust) * 3.6e6;       // mg/(N·s)
-  const noise = 100 - bpr * 4;                               // dB (qualitative)
-
-  return {
-    Thrust: Math.max(0, thrust / 1000),  // kN
-    TSFC: Math.min(25, Math.max(2, tsfc)),
-    Noise: Math.max(50, noise),
-  };
-}
-
-function BprSlider() {
-  const [bpr, setBpr] = useState(5);
-  const perf = qualitativePerformance(bpr);
-
-  const data = [
-    { name: `Thrust (kN)`, value: parseFloat(perf.Thrust.toFixed(2)), color: '#38bdf8' },
-    { name: `TSFC (mg/N·s)`, value: parseFloat(perf.TSFC.toFixed(2)), color: '#f59e0b' },
-    { name: `Noise (dB, qual.)`, value: parseFloat(perf.Noise.toFixed(1)), color: '#f87171' },
-  ];
-
-  return (
-    <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-semibold text-slate-200">Interactive: Effect of Bypass Ratio</h4>
-        <div className="text-lg font-bold text-blue-400">BPR = {bpr.toFixed(1)}</div>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={12}
-        step={0.5}
-        value={bpr}
-        onChange={e => setBpr(parseFloat(e.target.value))}
-        className="w-full accent-blue-500 mb-4"
-      />
-      <div className="flex justify-between text-xs text-slate-500 mb-3">
-        <span>Turbojet (0)</span>
-        <span>Ultra-high bypass (12)</span>
-      </div>
-      <ResponsiveContainer width="100%" height={160}>
-        <BarChart data={data} margin={{ top: 5, right: 10, bottom: 20, left: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
-          <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 9 }} />
-          <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} />
-          <Tooltip
-            contentStyle={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '8px', fontSize: 11 }}
-            labelStyle={{ color: '#94a3b8' }}
-          />
-          <Bar dataKey="value" fill="#38bdf8" isAnimationActive={false}>
-            {data.map((entry, index) => (
-              <rect key={index} fill={entry.color} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-      <div className="text-xs text-slate-500 mt-2 text-center">
-        Note: These are qualitative demonstrations only — use the Calculate tab for accurate physics.
-      </div>
-    </div>
-  );
-}
+import React from 'react';
 
 // ─── Content Sections ─────────────────────────────────────────────────────────
 
@@ -210,32 +134,28 @@ export default function HelpSection() {
         </div>
       </section>
 
-      {/* Interactive Demo */}
-      <section>
-        <h2 className="text-lg font-bold text-white mb-3">Interactive Demo</h2>
-        <BprSlider />
-      </section>
-
       {/* Resources */}
       <section>
         <h2 className="text-lg font-bold text-white mb-3">Further Reading</h2>
-        <div className="space-y-2">
+
+        <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider font-semibold">Free resources</p>
+        <div className="space-y-2 mb-5">
           <div className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
-            <div className="text-sm font-semibold text-slate-200 mb-1">NASA Glenn Research Center</div>
+            <div className="text-sm font-semibold text-slate-200 mb-1">NASA Glenn — Beginner's Guide to Propulsion</div>
             <div className="text-xs text-slate-400 font-mono">
               https://www.grc.nasa.gov/www/k-12/airplane/turbine.html
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Excellent free resource explaining gas turbine propulsion with interactive animations.
+              Free web resource covering Brayton cycle, compressors, turbines, thrust, and TSFC with interactive animations.
             </p>
           </div>
           <div className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
-            <div className="text-sm font-semibold text-slate-200 mb-1">Rolls-Royce: The Jet Engine</div>
+            <div className="text-sm font-semibold text-slate-200 mb-1">NIST Chemistry WebBook</div>
             <div className="text-xs text-slate-400 font-mono">
-              https://www.rolls-royce.com/media/our-stories/discover/2019/the-jet-engine-book.aspx
+              https://webbook.nist.gov
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              The classic reference book on gas turbine engines by Rolls-Royce. Highly recommended.
+              Free database of thermodynamic properties for aviation fuels and other substances.
             </p>
           </div>
           <div className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
@@ -247,6 +167,65 @@ export default function HelpSection() {
               visualisations.
             </p>
           </div>
+        </div>
+
+        <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider font-semibold">Textbooks (purchase required)</p>
+        <div className="space-y-2 mb-5">
+          {[
+            {
+              title: 'Rolls-Royce: The Jet Engine',
+              detail: '5th ed., Rolls-Royce plc, 1996',
+              note: 'The classic qualitative reference on gas turbine architecture, materials, and operation.',
+            },
+            {
+              title: 'Saravanamuttoo, H.I.H. et al. — Gas Turbine Theory',
+              detail: '6th ed., Pearson, 2009',
+              note: 'Primary academic reference for Brayton cycle analysis and turbomachinery efficiency formulations.',
+            },
+            {
+              title: 'Mattingly, J.D. — Elements of Gas Turbine Propulsion',
+              detail: 'McGraw-Hill, 1996',
+              note: 'Rigorous treatment of thrust equations, nozzle flow, and spool work-balance derivations.',
+            },
+            {
+              title: 'Walsh, P.P. and Fletcher, P. — Gas Turbine Performance',
+              detail: '2nd ed., Blackwell / ASME Press, 2004',
+              note: 'Performance sweep methodology, TSFC conventions, and off-design modelling principles.',
+            },
+          ].map(({ title, detail, note }) => (
+            <div key={title} className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
+              <div className="text-sm font-semibold text-slate-200 mb-0.5">{title}</div>
+              <div className="text-xs text-slate-500 font-mono mb-1">{detail}</div>
+              <p className="text-xs text-slate-500">{note}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-slate-500 mb-3 uppercase tracking-wider font-semibold">Standards (purchase required)</p>
+        <div className="space-y-2">
+          {[
+            {
+              title: 'SAE ARP755 — Gas Turbine Engine Performance Station Identification and Nomenclature',
+              detail: 'SAE International, current revision',
+              note: 'Defines the station numbering convention (0, 2, 21, 25, 3, 4, 45, 5, 55, 9, 19) used throughout this app.',
+            },
+            {
+              title: 'ISO 2533:1975 — Standard Atmosphere',
+              detail: 'International Organisation for Standardisation, 1975',
+              note: 'International Standard Atmosphere temperature lapse rates and reference conditions implemented in the atmosphere model.',
+            },
+            {
+              title: 'ASTM D1655 — Standard Specification for Aviation Turbine Fuels',
+              detail: 'ASTM International, current revision',
+              note: 'Basis for Jet-A fuel specification; LHV = 43.2 MJ/kg used in the combustor energy balance.',
+            },
+          ].map(({ title, detail, note }) => (
+            <div key={title} className="bg-slate-700/30 border border-slate-700 rounded-lg p-3">
+              <div className="text-sm font-semibold text-slate-200 mb-0.5">{title}</div>
+              <div className="text-xs text-slate-500 font-mono mb-1">{detail}</div>
+              <p className="text-xs text-slate-500">{note}</p>
+            </div>
+          ))}
         </div>
       </section>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, AlertTriangle, CheckCircle, XCircle, BookOpen } from 'lucide-react';
 import type { EngineResults } from '../types/engine';
 
 interface Props {
@@ -48,6 +48,7 @@ function StationRow({ label, tt, pt }: { label: string; tt: number | null; pt: n
 
 export default function ResultsPanel({ results }: Props) {
   const [assumptionsOpen, setAssumptionsOpen] = useState(false);
+  const [literatureOpen, setLiteratureOpen] = useState(false);
   const s = results.stations;
   const g = results.geometry;
 
@@ -133,6 +134,28 @@ export default function ResultsPanel({ results }: Props) {
         </div>
       </div>
 
+      {/* Estimated Geometry */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Estimated Geometry</h3>
+        <div className="bg-slate-700/50 border border-slate-600 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <tbody>
+              {[
+                ['Inlet diameter', `${g.inlet_diameter_m.toFixed(3)} m`],
+                g.fan_diameter_m !== null ? ['Fan diameter', `${g.fan_diameter_m.toFixed(3)} m`] : null,
+                ['Core diameter', `${g.core_diameter_m.toFixed(3)} m`],
+                ['Engine length', `${g.engine_length_m.toFixed(3)} m`],
+              ].filter(Boolean).map((row, i) => (
+                <tr key={i} className="border-b border-slate-700/50">
+                  <td className="py-2 px-3 text-xs text-slate-400">{row![0]}</td>
+                  <td className="py-2 px-3 text-xs font-medium text-slate-200 text-right">{row![1]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* TIT Fraction */}
       <div>
         <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Combustion Headroom (Tt3 / TIT)</h3>
@@ -215,28 +238,6 @@ export default function ResultsPanel({ results }: Props) {
         </div>
       </div>
 
-      {/* Geometry Estimates */}
-      <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Estimated Geometry</h3>
-        <div className="bg-slate-700/50 border border-slate-600 rounded-lg overflow-hidden">
-          <table className="w-full">
-            <tbody>
-              {[
-                ['Inlet diameter', `${g.inlet_diameter_m.toFixed(3)} m`],
-                g.fan_diameter_m !== null ? ['Fan diameter', `${g.fan_diameter_m.toFixed(3)} m`] : null,
-                ['Core diameter', `${g.core_diameter_m.toFixed(3)} m`],
-                ['Engine length', `${g.engine_length_m.toFixed(3)} m`],
-              ].filter(Boolean).map((row, i) => (
-                <tr key={i} className="border-b border-slate-700/50">
-                  <td className="py-2 px-3 text-xs text-slate-400">{row![0]}</td>
-                  <td className="py-2 px-3 text-xs font-medium text-slate-200 text-right">{row![1]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       {/* Assumptions */}
       <div>
         <button
@@ -252,6 +253,65 @@ export default function ResultsPanel({ results }: Props) {
               <li key={i} className="text-xs text-slate-400 flex items-start gap-2">
                 <span className="text-slate-600 shrink-0">•</span>
                 <span>{a}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Literature */}
+      <div>
+        <button
+          onClick={() => setLiteratureOpen(!literatureOpen)}
+          className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors"
+        >
+          {literatureOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          <BookOpen size={14} />
+          Literature &amp; References
+        </button>
+        {literatureOpen && (
+          <ul className="mt-2 space-y-2 bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+            {[
+              {
+                ref: 'NOAA, NASA, USAF',
+                title: 'U.S. Standard Atmosphere, 1976',
+                detail: 'US Government Printing Office, 1976. Free via NASA Technical Reports Server (NTRS ID 19770009539).',
+                note: 'Defines ISA temperature lapse rates (−6.5 K/km troposphere, isothermal stratosphere), tropopause at 11 000 m, and sea-level reference conditions. Implemented in atmosphere.py.',
+              },
+              {
+                ref: 'NASA Glenn Research Center',
+                title: "Beginner's Guide to Propulsion",
+                detail: 'Free web resource. https://www.grc.nasa.gov/www/k-12/airplane/turbine.html',
+                note: 'Covers the Brayton cycle, compressor and turbine work equations, isentropic intake relations, thrust equation, and TSFC — the foundational theory behind all calculations in this app.',
+              },
+              {
+                ref: 'NACA',
+                title: 'Report 1135 — Equations, Tables, and Charts for Compressible Flow',
+                detail: 'NACA, 1953. Free via NASA Technical Reports Server.',
+                note: 'Canonical reference for isentropic flow relations (γ = 1.4) used in nozzle choking conditions, critical pressure ratio, and intake stagnation quantities.',
+              },
+              {
+                ref: 'NASA',
+                title: 'SP-36 — Aerodynamic Design of Axial-Flow Compressors',
+                detail: 'NASA/NACA, 1965. Free via NASA Technical Reports Server.',
+                note: 'Basis for per-stage axial compressor pressure ratio assumptions (PR ≈ 1.3 per stage) and stage-count to OPR mapping used in geometry estimation.',
+              },
+              {
+                ref: 'NIST',
+                title: 'Chemistry WebBook',
+                detail: 'National Institute of Standards and Technology. Free at https://webbook.nist.gov',
+                note: 'Reference for aviation fuel thermodynamic properties. LHV = 43.2 MJ/kg for Jet-A used in the combustor fuel-flow energy balance.',
+              },
+            ].map(({ ref, title, detail, note }, i) => (
+              <li key={i} className="text-xs text-slate-400 flex items-start gap-2 pb-2 border-b border-slate-700/50 last:border-0 last:pb-0">
+                <span className="text-slate-600 shrink-0 mt-0.5">•</span>
+                <span>
+                  <span className="text-slate-300">{ref}. </span>
+                  <span className="italic text-slate-200">{title}</span>
+                  {'. '}
+                  <span className="text-slate-500">{detail} </span>
+                  <span className="text-slate-500">{note}</span>
+                </span>
               </li>
             ))}
           </ul>

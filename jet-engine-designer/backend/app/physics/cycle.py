@@ -317,6 +317,9 @@ def _estimate_geometry(
     ipt_stages = max(1, math.ceil(ipc_stages / 2)) if ipc_stages > 0 else 0
     # LP turbine only on 2+ spool configs where there is a dedicated LP shaft (fan or LPC)
     lpt_stages = max(1, math.ceil((lpc_stages + fan_stages) / 2)) if (num_spools >= 2 and (lpc_stages + fan_stages) > 0) else 0
+    # Hard guard: 1-spool engines have no LP shaft — LP turbine must never appear
+    if num_spools == 1:
+        lpt_stages = 0
 
     # ── Axial length fractions per component (in D_inlet units) ──────────────
     # These are proportional lengths; we'll normalise at the end

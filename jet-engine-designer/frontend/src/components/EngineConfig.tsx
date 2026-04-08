@@ -148,7 +148,10 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
             <select
               className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
               value={formData.engine_type}
-              onChange={e => onChange({ engine_type: e.target.value as 'turbojet' | 'turbofan' })}
+              onChange={e => {
+                const t = e.target.value as 'turbojet' | 'turbofan';
+                onChange({ engine_type: t, ...(t === 'turbofan' && formData.num_spools === 1 ? { num_spools: 2 } : {}) });
+              }}
             >
               <option value="turbofan">Turbofan</option>
               <option value="turbojet">Turbojet</option>
@@ -157,20 +160,32 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
           <div>
             <FieldLabel label="Spools" paramKey="num_spools" defaults={defaults} />
             <div className="flex gap-1">
-              {([1, 2, 3] as const).map(n => (
-                <button
-                  key={n}
-                  onClick={() => onChange({ num_spools: n })}
-                  className={`flex-1 py-2 rounded-md text-sm font-semibold border transition-colors ${
-                    formData.num_spools === n
-                      ? 'bg-blue-600 border-blue-500 text-white'
-                      : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-blue-500'
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
+              {([1, 2, 3] as const).map(n => {
+                const disabled = isTurbofan && n === 1;
+                return (
+                  <button
+                    key={n}
+                    onClick={() => !disabled && onChange({ num_spools: n })}
+                    disabled={disabled}
+                    title={disabled ? '1-spool turbofan is not used in commercial aviation' : undefined}
+                    className={`flex-1 py-2 rounded-md text-sm font-semibold border transition-colors ${
+                      formData.num_spools === n && !disabled
+                        ? 'bg-blue-600 border-blue-500 text-white'
+                        : disabled
+                        ? 'bg-slate-800 border-slate-700 text-slate-600 cursor-not-allowed'
+                        : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-blue-500'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                );
+              })}
             </div>
+            {isTurbofan && (
+              <div className="text-xs text-slate-500 mt-1">
+                1-spool not available — not used in commercial aviation
+              </div>
+            )}
           </div>
         </div>
 
