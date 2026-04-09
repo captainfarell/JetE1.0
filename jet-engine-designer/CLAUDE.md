@@ -4,17 +4,14 @@
 
 Web app for Brayton cycle jet engine analysis. Backend computes all physics; frontend is pure UI. No physics logic in the frontend — if a calculation is wrong, look in `backend/app/physics/cycle.py`.
 
-**To run:**
+**To run (use the launcher script — never start servers manually):**
 ```bash
-# Backend (port 8000)
-cd jet-engine-designer/backend
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Frontend (port 5173)
-cd jet-engine-designer/frontend
-npm run dev
+powershell -ExecutionPolicy Bypass -File start.ps1
 ```
+This kills stale processes on 8000/5173 and opens both servers in separate windows.
 Vite proxies `/api/*` → `http://localhost:8000`. API docs at `http://localhost:8000/api/docs`.
+
+**Agent rule:** Only edit files. When a server restart is needed, say so and tell the user to re-run `start.ps1`. Never spawn background server processes.
 
 ---
 
@@ -22,6 +19,7 @@ Vite proxies `/api/*` → `http://localhost:8000`. API docs at `http://localhost
 
 ```
 jet-engine-designer/
+├── start.ps1                ← Dev launcher: kills stale processes, starts backend + frontend
 ├── backend/app/
 │   ├── main.py                  ← FastAPI routes only (4 endpoints, no logic)
 │   ├── config/defaults.py       ← ENGINE_PRESETS, MATERIAL_TIT_RANGES, PARAMETER_DESCRIPTIONS
@@ -35,13 +33,18 @@ jet-engine-designer/
     ├── App.tsx                  ← Root: state, tab routing, API calls, form→result flow
     ├── types/engine.ts          ← TypeScript interfaces (must mirror Pydantic models exactly)
     ├── services/api.ts          ← Axios client: calculateEngine(), calculateEnvelope(), getDefaults()
+    ├── themes/
+    │   ├── active.css           ← (unused — main.tsx imports palette directly)
+    │   ├── palette-original.css — dark teal / navy (original)
+    │   └── palette-3125.css    — earthy green / olive-black (ACTIVE — imported in main.tsx)
     └── components/
-        ├── EngineConfig.tsx     ← Architecture inputs: engine type, spools, OPR, TIT, efficiencies (no presets)
+        ├── EngineConfig.tsx     ← Architecture inputs: engine type, spools, OPR, TIT, efficiencies
         ├── AircraftConfig.tsx   ← Aircraft + flight condition inputs
         ├── EnvelopeConfig.tsx   ← Sweep range inputs + Generate button
-        ├── EngineLayout.tsx     ← Hardcoded engine section list (replaces SVG diagram)
+        ├── EngineLayout.tsx     ← Hardcoded engine section list
         ├── ResultsPanel.tsx     ← All results display (see section order below)
         ├── PlotsPanel.tsx       ← Recharts envelope plots
+        ├── WorkflowSection.tsx  ← Workflow tab: step-by-step calculation flow with rendered equations
         └── HelpSection.tsx      ← Learn tab: Brayton cycle explainer + Further Reading
 ```
 
@@ -119,11 +122,12 @@ Do not compute them dynamically; edit the dict directly.
 1. Errors & Warnings banners
 2. **Performance Summary** (MetricCard grid: thrust, TSFC, fuel flow, propulsive efficiency, mass flows)
 3. **Estimated Geometry** (inline table: inlet/fan/core diameter, engine length)
-4. Combustion Headroom — Tt3/TIT progress bar
-5. Station Thermodynamic States — table of Tt and pt per station
-6. Nozzle Exit Conditions
-7. **Model Assumptions** — collapsible accordion
-8. **Literature & References** — collapsible accordion (free resources only: NOAA US Std Atmosphere, NASA Glenn, NACA 1135, NASA SP-36, NIST WebBook)
+4. **Compressor Stage Counts** — table of stages per compressor section (Fan, LP, IP, HP as applicable); note: axial only, ~1.3 PR/stage
+5. Combustion Headroom — Tt3/TIT progress bar
+6. Station Thermodynamic States — table of Tt and pt per station
+7. Nozzle Exit Conditions
+8. **Model Assumptions** — collapsible accordion
+9. **Literature & References** — collapsible accordion (free resources only: NOAA US Std Atmosphere, NASA Glenn, NACA 1135, NASA SP-36, NIST WebBook)
 
 ---
 
@@ -132,7 +136,7 @@ Do not compute them dynamically; edit the dict directly.
 1. How Does a Jet Engine Work?
 2. The Brayton Cycle (4-card grid)
 3. Turbofan vs Turbojet (comparison table + 2-card note on disabled architectures)
-4. Key Parameters Explained
+4. Key Parameters Explained (ISA first, then engine parameters)
 5. **Further Reading** — three sub-groups:
    - Free resources (NASA Glenn, NIST WebBook, YouTube)
    - Textbooks — purchase required (Rolls-Royce, Saravanamuttoo, Mattingly, Walsh & Fletcher)
@@ -155,7 +159,7 @@ handleCalculate()
 handleEnvelope(config)
   → POST /api/envelope({design: formData, ...config}) → setEnvelopeResults()
 
-Tab order: 'learn' (default) → 'design' → 'results' → 'envelope'
+Tab order: 'learn' (default) → 'design' → 'results' → 'envelope' → 'workflow'
 ```
 
 **Key constraint:** `EngineLayout` reads from `formData` (not `results`) so it always shows the current configuration, even before calculation.
@@ -290,32 +294,32 @@ All styling via Tailwind utility classes — no custom CSS except in `index.css`
 
 ### Theming / palette swapping
 
-Colours are defined as CSS custom properties. To switch the entire palette, edit one line:
+Colours are defined as CSS custom properties. To switch the entire palette, change the import in `main.tsx`:
 
 ```
 frontend/src/themes/
-├── active.css          ← change the @import here to switch palettes
 ├── palette-original.css  — dark teal / navy (original)
-└── palette-3125.css    — earthy green / olive-black (colorpalettes.net #3125)
+└── palette-3125.css      — earthy green / olive-black (ACTIVE)
 ```
 
 To try a new palette:
 1. Create `frontend/src/themes/palette-XXXX.css` — define all `--app-*` vars (copy an existing file as template)
-2. Change the `@import` in `active.css` to point at the new file
+2. Change the `import './themes/palette-XXXX.css'` line in `main.tsx`
 
 `tailwind.config.js` reads `var(--app-*)` — no changes needed there when swapping palettes.
 
 **Custom colour tokens** (resolved at runtime via CSS variables, declared in active palette file):
-- `app-bg` `#011F28` — page background
-- `app-surface` `#0c2c38` — card/panel background
-- `app-raised` `#183644` — table headers, sub-panel backgrounds
-- `app-muted` `#324E59` — inputs, badges, lightest panels
-- `app-border` `#1c3b4a` — borders
-- `app-text` `#E3DBD2` — primary text
-- `app-secondary` `#7F888D` — secondary/muted text
-- `app-dim` `#4a5e68` — very dim text (bullets, minor labels)
+- `app-bg` — page background (deep olive-black)
+- `app-surface` — card/panel background
+- `app-raised` — table headers, sub-panel backgrounds
+- `app-muted` — inputs, badges, lightest panels
+- `app-border` — borders
+- `app-text` — primary text
+- `app-secondary` — secondary/muted text
+- `app-dim` — very dim text (bullets, minor labels)
+- `app-accent` `#cc901f` — **section headings, accent text** (saturated amber gold; replaces blue-400 for earthy palette)
 - `blue-600` — primary action button
-- `blue-400` — section headings, active tab, accent text
+- `blue-400` — active tab indicator, tooltip info icons, functional links
 - `green/yellow/red` — status (positive margin / warning / error)
 - `amber-400` — choked nozzle indicator
 

@@ -99,6 +99,9 @@ class EngineResults(BaseModel):
     # ── Geometry ─────────────────────────────────────────────────────────────
     geometry: GeometryData
 
+    # ── Compressor Stages ────────────────────────────────────────────────────
+    compressor_stages: dict[str, int]  # e.g. {"Fan": 2, "LP": 4, "HP": 8}
+
     # ── Limits & Efficiency ──────────────────────────────────────────────────
     tit_fraction: float          # Tt3 / TIT_max — fraction of TIT already consumed by compression
     propulsive_efficiency: float

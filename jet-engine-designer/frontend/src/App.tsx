@@ -58,10 +58,10 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'learn',    label: 'How does a jet engine work?', icon: <HelpCircle size={15} /> },
-  { id: 'workflow', label: 'Workflow',                    icon: <GitBranch size={15} /> },
   { id: 'design',   label: 'Engine Design',               icon: <Cpu size={15} /> },
   { id: 'results',  label: 'Results & Diagram',           icon: <Play size={15} /> },
   { id: 'envelope', label: 'Envelope Analysis',           icon: <BookOpen size={15} /> },
+  { id: 'workflow', label: 'Workflow',                    icon: <GitBranch size={15} /> },
 ];
 
 // ─── Validation panel ─────────────────────────────────────────────────────────
@@ -212,7 +212,7 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Left column: engine architecture */}
               <div className="bg-app-surface border border-app-border rounded-xl p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-app-accent mb-4 pb-2 border-b border-app-border">
                   Engine Architecture
                 </h2>
                 <EngineConfig
@@ -224,7 +224,7 @@ export default function App() {
 
               {/* Right column: aircraft & flight */}
               <div className="bg-app-surface border border-app-border rounded-xl p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-app-accent mb-4 pb-2 border-b border-app-border">
                   Aircraft &amp; Flight Condition
                 </h2>
                 <AircraftConfig
@@ -303,7 +303,7 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
               {/* Config panel */}
               <div className="lg:col-span-2 bg-app-surface border border-app-border rounded-xl p-5">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-app-accent mb-4 pb-2 border-b border-app-border">
                   Envelope Settings
                 </h2>
                 <EnvelopeConfig
@@ -327,7 +327,7 @@ export default function App() {
                   </div>
                 ) : (
                   <div className="bg-app-surface border border-app-border rounded-xl p-5">
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-blue-400 mb-4 pb-2 border-b border-app-border">
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-app-accent mb-4 pb-2 border-b border-app-border">
                       Performance Plots
                     </h2>
                     <PlotsPanel results={envelopeResults} />

@@ -583,6 +583,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
             fuel_flow_kg_s=0.0, fuel_flow_kg_h=0.0, tsfc_kg_n_h=0.0,
             core_mass_flow_kg_s=m_core, bypass_mass_flow_kg_s=m_bypass,
             stations=stations_empty, geometry=geo_empty,
+            compressor_stages={},
             tit_fraction=0.0, propulsive_efficiency=0.0,
             errors=errors, warnings=warnings, assumptions=assumptions,
         )
@@ -834,6 +835,28 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
             f"but requires {thrust_required:.0f} N."
         )
 
+    # ── Compressor Stage Counts ───────────────────────────────────────────────
+    compressor_stages: dict[str, int] = {}
+    if eng == "turbojet":
+        if ns == 1:
+            compressor_stages["HP"] = _num_stages(OPR)
+        elif ns == 2:
+            compressor_stages["LP"] = _num_stages(lpr)
+            compressor_stages["HP"] = _num_stages(hpr)
+        else:  # 3-spool turbojet
+            compressor_stages["LP"] = _num_stages(lpr)
+            compressor_stages["IP"] = _num_stages(ipr)
+            compressor_stages["HP"] = _num_stages(hpr)
+    else:  # turbofan
+        compressor_stages["Fan"] = _num_stages(FPR)
+        if ns == 1:
+            compressor_stages["HP"] = _num_stages(hpr)
+        elif ns == 2:
+            compressor_stages["HP"] = _num_stages(hpr)
+        else:  # 3-spool turbofan
+            compressor_stages["IP"] = _num_stages(ipr)
+            compressor_stages["HP"] = _num_stages(hpr)
+
     # ── Geometry ─────────────────────────────────────────────────────────────
     geometry = _estimate_geometry(
         engine_type=eng,
@@ -907,6 +930,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         bypass_mass_flow_kg_s=round(m_bypass, 3),
         stations=stations,
         geometry=geometry,
+        compressor_stages=compressor_stages,
         tit_fraction=round(tit_fraction, 4),
         propulsive_efficiency=round(prop_eff, 4),
         errors=errors,

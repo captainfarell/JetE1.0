@@ -16,10 +16,21 @@ interface StepNode {
   station: string;
   title: string;
   subtitle?: string;
-  note?: string;        // e.g. "turbofan only"
+  note?: string;
   inputs: IOItem[];
-  equations: string[];
+  equations: React.ReactNode[];
   outputs: IOItem[];
+}
+
+// ─── Math helpers ─────────────────────────────────────────────────────────────
+
+function Frac({ num, den }: { num: React.ReactNode; den: React.ReactNode }) {
+  return (
+    <span className="inline-flex flex-col items-center align-middle mx-0.5" style={{ lineHeight: 1.1 }}>
+      <span className="border-b border-current px-0.5 leading-tight text-[0.7em]">{num}</span>
+      <span className="px-0.5 leading-tight text-[0.7em]">{den}</span>
+    </span>
+  );
 }
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
@@ -104,9 +115,9 @@ function StepCard({ step }: { step: StepNode }) {
           {/* Equations */}
           <div className="p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-app-secondary mb-2">Equations</p>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {step.equations.map((eq, i) => (
-                <div key={i} className="text-xs font-mono text-blue-300 bg-app-raised/60 rounded px-2 py-1 leading-relaxed">
+                <div key={i} className="text-xs font-mono text-blue-300 bg-app-raised/60 rounded px-2 py-1.5 leading-relaxed flex items-center flex-wrap gap-x-0.5">
                   {eq}
                 </div>
               ))}
@@ -140,9 +151,9 @@ const STEPS: StepNode[] = [
       { sym: 'V', label: 'cruise speed [km/h]', kind: 'user' },
     ],
     equations: [
-      'T_amb, p_amb, ρ = ISA(h)',
-      'a = √(γ·R·T_amb)',
-      'M₀ = V / a',
+      <span>T<sub>amb</sub>, p<sub>amb</sub>, ρ = ISA(h)</span>,
+      <span>a = √(γ · R · T<sub>amb</sub>)</span>,
+      <span>M<sub>0</sub> = <Frac num="V" den="a" /></span>,
     ],
     outputs: [
       { sym: 'T_amb', label: 'static temp [K]', kind: 'out' },
@@ -161,8 +172,12 @@ const STEPS: StepNode[] = [
       { sym: 'M₀', label: 'Mach number', kind: 'derived' },
     ],
     equations: [
-      'Tt2 = T_amb·(1 + (γ−1)/2·M₀²)',
-      'pt2 = p_amb·(Tt2/T_amb)^(γ/(γ−1))',
+      <span>
+        T<sub>t2</sub> = T<sub>amb</sub> · (1 + <Frac num="γ−1" den="2" /> · M<sub>0</sub><sup>2</sup>)
+      </span>,
+      <span>
+        p<sub>t2</sub> = p<sub>amb</sub> · (T<sub>t2</sub> / T<sub>amb</sub>)<sup><Frac num="γ" den="γ−1" /></sup>
+      </span>,
     ],
     outputs: [
       { sym: 'Tt2', label: 'total temp [K]', kind: 'out' },
@@ -183,9 +198,15 @@ const STEPS: StepNode[] = [
       { sym: 'BPR', label: 'bypass ratio', kind: 'user' },
     ],
     equations: [
-      'Tt21 = Tt2·[1 + (FPR^((γ−1)/γ) − 1) / η_fan]',
-      'pt21 = pt2 · FPR',
-      'ṁ_bypass = BPR · ṁ_core',
+      <span>
+        T<sub>t21</sub> = T<sub>t2</sub> · [1 + <Frac num={<span>FPR<sup><Frac num="γ−1" den="γ" /></sup> − 1</span>} den="η_fan" />]
+      </span>,
+      <span>
+        p<sub>t21</sub> = p<sub>t2</sub> · FPR
+      </span>,
+      <span>
+        ṁ<sub>bypass</sub> = BPR · ṁ<sub>core</sub>
+      </span>,
     ],
     outputs: [
       { sym: 'Tt21', label: 'fan exit temp [K]', kind: 'out' },
@@ -205,9 +226,15 @@ const STEPS: StepNode[] = [
       { sym: 'η_c', label: 'compressor efficiency', kind: 'user' },
     ],
     equations: [
-      'PR_HP = OPR / (FPR · PR_LP · PR_IP)  [auto-split]',
-      'Tt_out = Tt_in·[1 + (PR^((γ−1)/γ) − 1) / η_c]',
-      'pt_out = pt_in · PR',
+      <span>
+        PR<sub>HP</sub> = <Frac num="OPR" den="FPR · PR_LP · PR_IP" /> <span className="text-app-secondary font-sans">[auto-split]</span>
+      </span>,
+      <span>
+        T<sub>t,out</sub> = T<sub>t,in</sub> · [1 + <Frac num={<span>PR<sup><Frac num="γ−1" den="γ" /></sup> − 1</span>} den="η_c" />]
+      </span>,
+      <span>
+        p<sub>t,out</sub> = p<sub>t,in</sub> · PR
+      </span>,
     ],
     outputs: [
       { sym: 'Tt3', label: 'HP exit temp [K]', kind: 'out' },
@@ -227,10 +254,18 @@ const STEPS: StepNode[] = [
       { sym: 'ṁ_core', label: 'core mass flow', kind: 'user' },
     ],
     equations: [
-      'ṁ_f·LHV·η_b = ṁ_core·cp·(Tt4 − Tt3)',
-      'ṁ_f = ṁ_core·cp·(TIT − Tt3) / (LHV·η_b)',
-      'pt4 ≈ pt3  [no pressure loss modelled]',
-      'LHV = 43.2 MJ/kg  (Jet-A)',
+      <span>
+        ṁ<sub>f</sub> · LHV · η<sub>b</sub> = ṁ<sub>core</sub> · c<sub>p</sub> · (T<sub>t4</sub> − T<sub>t3</sub>)
+      </span>,
+      <span>
+        ṁ<sub>f</sub> = <Frac num={<span>ṁ<sub>core</sub> · c<sub>p</sub> · (TIT − T<sub>t3</sub>)</span>} den={<span>LHV · η<sub>b</sub></span>} />
+      </span>,
+      <span>
+        p<sub>t4</sub> ≈ p<sub>t3</sub> <span className="text-app-secondary font-sans">[no pressure loss modelled]</span>
+      </span>,
+      <span>
+        LHV = 43.2 MJ/kg <span className="text-app-secondary font-sans">(Jet-A)</span>
+      </span>,
     ],
     outputs: [
       { sym: 'Tt4', label: 'TIT [K]', kind: 'out' },
@@ -250,9 +285,15 @@ const STEPS: StepNode[] = [
       { sym: 'W_c', label: 'compressor work', kind: 'derived' },
     ],
     equations: [
-      'W_turbine = ṁ_core·cp·ΔTt_turbine',
-      'W_turbine = W_compressor (+ W_fan for turbofan)',
-      'pt_out = pt_in·[1 − ΔTt/(η_t·Tt_in)]^(γ/(γ−1))',
+      <span>
+        W<sub>turbine</sub> = ṁ<sub>core</sub> · c<sub>p</sub> · ΔT<sub>t,turbine</sub>
+      </span>,
+      <span>
+        W<sub>turbine</sub> = W<sub>compressor</sub> + W<sub>fan</sub> <span className="text-app-secondary font-sans">(turbofan)</span>
+      </span>,
+      <span>
+        p<sub>t,out</sub> = p<sub>t,in</sub> · (1 − <Frac num="ΔT_t" den={<span>η<sub>t</sub> · T<sub>t,in</sub></span>} />)<sup><Frac num="γ" den="γ−1" /></sup>
+      </span>,
     ],
     outputs: [
       { sym: 'Tt45', label: 'HP turbine exit [K]', kind: 'out' },
@@ -273,9 +314,15 @@ const STEPS: StepNode[] = [
       { sym: 'p_amb', label: 'ambient pressure', kind: 'derived' },
     ],
     equations: [
-      'PR_crit = ((γ+1)/2)^(γ/(γ−1)) ≈ 1.893',
-      'choked if pt/p_amb ≥ PR_crit',
-      'vj = √(2·cp·Tt·[1 − (p_amb/pt)^((γ−1)/γ)])',
+      <span>
+        PR<sub>crit</sub> = (<Frac num="γ+1" den="2" />)<sup><Frac num="γ" den="γ−1" /></sup> ≈ 1.893
+      </span>,
+      <span>
+        choked if <Frac num="p_t" den="p_amb" /> ≥ PR<sub>crit</sub>
+      </span>,
+      <span>
+        v<sub>j</sub> = √(2 · c<sub>p</sub> · T<sub>t</sub> · [1 − (<Frac num="p_amb" den="p_t" />)<sup><Frac num="γ−1" den="γ" /></sup>])
+      </span>,
     ],
     outputs: [
       { sym: 'vj_core', label: 'core jet velocity [m/s]', kind: 'out' },
@@ -296,9 +343,15 @@ const STEPS: StepNode[] = [
       { sym: 'ṁ_f', label: 'fuel flow', kind: 'derived' },
     ],
     equations: [
-      'F_net = ṁ_core·(vj_core−V₀) + ṁ_bypass·(vj_byp−V₀)',
-      'TSFC = ṁ_f / F_net  [kg/(N·h)]',
-      'η_p = 2V₀·F_net / Σ(ṁ·vj²−ṁ·V₀²)',
+      <span>
+        F<sub>net</sub> = ṁ<sub>core</sub> · (v<sub>j,core</sub> − V<sub>0</sub>) + ṁ<sub>bypass</sub> · (v<sub>j,byp</sub> − V<sub>0</sub>)
+      </span>,
+      <span>
+        TSFC = <Frac num="ṁ_f" den={<span>F<sub>net</sub></span>} /> <span className="text-app-secondary font-sans">[kg/(N·h)]</span>
+      </span>,
+      <span>
+        η<sub>p</sub> = <Frac num={<span>2 · V<sub>0</sub> · F<sub>net</sub></span>} den={<span>Σ (ṁ · v<sub>j</sub><sup>2</sup> − ṁ · V<sub>0</sub><sup>2</sup>)</span>} />
+      </span>,
     ],
     outputs: [
       { sym: 'F_net', label: 'net thrust [N]', kind: 'out' },
@@ -346,9 +399,9 @@ export default function WorkflowSection() {
             <StepCard step={step} />
             {i < STEPS.length - 1 && (
               <Arrow label={
-                step.id === 'atm'     ? 'T_amb · p_amb · M₀' :
-                step.id === 'intake'  ? 'Tt2 · pt2' :
-                step.id === 'fan'     ? 'Tt21 · pt21 · ṁ_bypass' :
+                step.id === 'atm'        ? 'T_amb · p_amb · M₀' :
+                step.id === 'intake'     ? 'Tt2 · pt2' :
+                step.id === 'fan'        ? 'Tt21 · pt21 · ṁ_bypass' :
                 step.id === 'compressor' ? 'Tt3 · pt3' :
                 step.id === 'combustor'  ? 'Tt4 · pt4 · ṁ_f' :
                 step.id === 'turbine'    ? 'Tt5 · pt5' :
@@ -362,7 +415,7 @@ export default function WorkflowSection() {
 
       {/* Footer note */}
       <p className="text-xs text-app-dim pt-2 border-t border-app-border">
-        Constants: γ = 1.4 · cp = 1005 J/(kg·K) · R = 287.058 J/(kg·K) · LHV = 43.2 MJ/kg (Jet-A) ·
+        Constants: γ = 1.4 · c<sub>p</sub> = 1005 J/(kg·K) · R = 287.058 J/(kg·K) · LHV = 43.2 MJ/kg (Jet-A) ·
         Axial stage ΔPR = 1.3 · No combustor pressure loss · Isentropic intake · Converging nozzle only
       </p>
 

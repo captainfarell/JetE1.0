@@ -288,7 +288,7 @@ export default function EngineDiagram({ results }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent">
           Engine Cross-Section Diagram
         </h3>
         <button

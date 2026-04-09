@@ -88,7 +88,7 @@ export default function EngineLayout({ engine_type, num_spools }: Props) {
 
   return (
     <div>
-      <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-4">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-4">
         Engine Sections — {engine_type === 'turbofan' ? 'Turbofan' : 'Turbojet'}, {num_spools} Spool{num_spools > 1 ? 's' : ''}
       </h3>
 

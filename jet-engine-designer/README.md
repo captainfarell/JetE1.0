@@ -23,26 +23,28 @@ A web-based application for designing and analysing jet engines (turbojet and tu
 - Python 3.10+ with `pip`
 - Node.js 18+ with `npm`
 
-### 1. Start the backend
+### 1. Install dependencies (first time only)
 
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
 
-The API will be available at `http://localhost:8000`.  
-Interactive API docs: `http://localhost:8000/api/docs`
-
-### 2. Start the frontend
-
-```bash
-cd frontend
+cd ../frontend
 npm install
-npm run dev
 ```
 
-The app will open at `http://localhost:5173`.
+### 2. Start both servers
+
+From the project root, run the launcher script:
+
+```
+powershell -ExecutionPolicy Bypass -File start.ps1
+```
+
+This kills any stale processes on ports 8000 and 5173, then opens the backend and frontend in separate terminal windows.
+
+The app will be available at `http://localhost:5173`.  
+Interactive API docs: `http://localhost:8000/api/docs`
 
 The Vite dev server proxies `/api/*` to `http://localhost:8000`, so no CORS configuration is needed during development.
 
@@ -72,6 +74,7 @@ To serve the frontend from FastAPI, copy `dist/` to `backend/static/` and add a 
 
 ```
 jet-engine-designer/
+├── start.ps1             ← Dev launcher: kills stale processes, starts backend + frontend
 ├── backend/
 │   ├── app/
 │   │   ├── config/
@@ -89,15 +92,32 @@ jet-engine-designer/
         ├── App.tsx               ← Root: state management, tab routing, API calls
         ├── types/engine.ts       ← TypeScript interfaces (mirrors Pydantic models)
         ├── services/api.ts       ← Axios API client (calculateEngine, calculateEnvelope, getDefaults)
+        ├── themes/
+        │   ├── palette-original.css  ← Dark teal / navy (original)
+        │   └── palette-3125.css      ← Earthy green / olive-black (active)
         └── components/
-            ├── EngineConfig.tsx  ← Architecture inputs (type, spools, OPR, TIT, efficiencies + per-config engine examples)
-            ├── AircraftConfig.tsx← Aircraft and flight condition inputs
-            ├── EnvelopeConfig.tsx← Envelope sweep configuration (inline label/input rows)
-            ├── ResultsPanel.tsx  ← Performance metrics, station table, geometry table, assumptions
-            ├── EngineLayout.tsx  ← Hardcoded engine section flow diagram
-            ├── PlotsPanel.tsx    ← Recharts line plots (thrust, TSFC, TIT fraction vs speed/altitude)
-            └── HelpSection.tsx   ← Educational content, architecture notes, further reading
+            ├── EngineConfig.tsx      ← Architecture inputs (type, spools, OPR, TIT, efficiencies)
+            ├── AircraftConfig.tsx    ← Aircraft and flight condition inputs
+            ├── EnvelopeConfig.tsx    ← Envelope sweep configuration
+            ├── ResultsPanel.tsx      ← Performance metrics, compressor stages, station table, geometry
+            ├── EngineLayout.tsx      ← Hardcoded engine section flow diagram
+            ├── PlotsPanel.tsx        ← Recharts line plots (thrust, TSFC, TIT fraction vs speed/altitude)
+            ├── WorkflowSection.tsx   ← Step-by-step calculation workflow with rendered equations
+            └── HelpSection.tsx       ← Educational content, ISA explainer, architecture notes, further reading
 ```
+
+---
+
+## Features
+
+- **Turbojet and Turbofan** architectures, 1–3 spools (invalid combos disabled with explanations)
+- **Brayton cycle thermodynamics** — full station-by-station calculation per ARP755 numbering
+- **Compressor stage count** estimate per spool (axial, ~1.3 PR/stage)
+- **Performance envelope** sweeps — thrust, TSFC, TIT fraction vs speed and altitude
+- **ISA atmosphere model** — troposphere + stratosphere, with deviation (ISA+ΔT) support
+- **Workflow tab** — step-by-step equations rendered with stacked fractions, subscripts, and Greek letters
+- **Learn tab** — Brayton cycle explainer, ISA description, key parameters, further reading
+- **Earthy colour theme** — palette-3125 (olive-black / amber gold accent)
 
 ---
 
@@ -112,6 +132,7 @@ All thermodynamic calculations are in `backend/app/physics/cycle.py`.
 | `compressor_exit_temp(T_in, PR, eta_c)` | Adiabatic compressor temperature rise |
 | `turbine_exit_pressure(Tt_in, Tt_out, pt_in, eta_t)` | Turbine exit pressure from temperature drop |
 | `nozzle_exit(Tt, pt, p_amb, m_dot)` | Converging nozzle: choked or unchoked exit conditions |
+| `_num_stages(PR)` | Approximate axial compressor stage count (1.3 PR/stage) |
 | `calculate_engine(request)` | Full cycle: all engine types and spool counts |
 | `calculate_envelope(request)` | Speed and altitude sweeps using `calculate_engine` |
 | `_estimate_geometry(...)` | Inlet/fan diameter from flow area; component length estimates |
@@ -124,17 +145,17 @@ The atmosphere model is in `backend/app/physics/atmosphere.py`:
 
 ### How to add or change parameters
 
-1. **Add a new input field**: Add the field to `CalculateRequest` in `models/inputs.py` with a Pydantic `Field()` default and description. Add the matching TypeScript field to `src/types/engine.ts`.
+1. **Add a new input field**: Add the field to `CalculateRequest` in `models/inputs.py` with a Pydantic `Field()` default. Add the matching TypeScript field to `src/types/engine.ts`.
 
 2. **Use the field in physics**: Reference it inside `calculate_engine()` in `cycle.py`.
 
 3. **Add a description/tooltip**: Add an entry to `PARAMETER_DESCRIPTIONS` in `config/defaults.py`. The frontend automatically shows this as an info tooltip in `EngineConfig`.
 
-4. **Add a new output value**: Add the field to `EngineResults` (or a sub-model like `StationData`) in `models/outputs.py`. Add it to the TypeScript `EngineResults` interface. Display it in `ResultsPanel.tsx`.
+4. **Add a new output value**: Add the field to `EngineResults` in `models/outputs.py`. Add it to the TypeScript `EngineResults` interface. Display it in `ResultsPanel.tsx`.
 
 ### How to add a new plot
 
-1. Add the series to the relevant `PlotData` object returned by `calculate_envelope()` in `cycle.py` (or create a new `PlotData` and add it to `EnvelopeResults`).
+1. Add the series to the relevant `PlotData` object in `calculate_envelope()` in `cycle.py`.
 2. Add the new field to `EnvelopeResults` in `models/outputs.py` and `src/types/engine.ts`.
 3. In `PlotsPanel.tsx`, add a `<SinglePlot>` for the new `PlotData`.
 
@@ -145,12 +166,21 @@ The atmosphere model is in `backend/app/physics/atmosphere.py`:
 3. Add geometry logic to `_estimate_geometry()`.
 4. Add a preset to `ENGINE_PRESETS` in `config/defaults.py`.
 5. Update the frontend dropdown in `EngineConfig.tsx`.
+6. Add an entry to the `LAYOUTS` dict in `EngineLayout.tsx`.
+
+### Theming
+
+To swap the colour palette, change the import line in `frontend/src/main.tsx`:
+
+```ts
+import './themes/palette-3125.css'   // ← change to another palette file
+```
+
+Create new palette files in `frontend/src/themes/` by copying an existing one and redefining the `--app-*` CSS variables.
 
 ---
 
 ## Physics Reference
-
-The following equations are used throughout `cycle.py`:
 
 ### Intake (isentropic)
 ```
@@ -175,18 +205,8 @@ Fuel: Jet-A, LHV = 43.2 MJ/kg.
 pt_out = pt_in * [1 − (Tt_in − Tt_out) / (η_t * Tt_in)]^(γ/(γ-1))
 ```
 
-### Work balance (shaft power)
-Each turbine drives its corresponding compressor spool. For turbofan, the LP turbine additionally drives the fan, so the work balance accounts for total mass flow:
-```
-m_core * cp * (Tt_turbine_in − Tt_turbine_out) = m_total * cp * (Tt_fan_out − Tt_fan_in)
-```
-
 ### Nozzle (converging)
 Critical pressure ratio: `PRcrit = ((γ+1)/2)^(γ/(γ-1)) ≈ 1.893`
-
-Choked: `Vj = √(γ·R·Tt·2/(γ+1))`, `p_exit = pt·(2/(γ+1))^(γ/(γ-1))`
-
-Unchoked: `Vj = √(2·η_n·cp·Tt·[1 − (p_amb/pt)^((γ-1)/γ)])`, `p_exit = p_amb`
 
 ### Thrust
 ```
@@ -197,11 +217,6 @@ T = ṁ_core*(Vj_core − V0) + (p_exit_core − p_amb)*A_exit_core
 ### TSFC
 ```
 TSFC = ṁ_f / T   [kg/(N·s)] or [kg/(N·h)]
-```
-
-### Aircraft drag (cruise)
-```
-D = m * g * (CD / CL)   (simplified level-flight steady state)
 ```
 
 ---

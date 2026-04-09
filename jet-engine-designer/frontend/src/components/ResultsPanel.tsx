@@ -86,7 +86,7 @@ export default function ResultsPanel({ results }: Props) {
 
       {/* Performance Summary */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Performance Summary</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3">Performance Summary</h3>
         <div className="grid grid-cols-2 gap-2">
           <MetricCard
             label="Net Thrust"
@@ -136,7 +136,7 @@ export default function ResultsPanel({ results }: Props) {
 
       {/* Estimated Geometry */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Estimated Geometry</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3">Estimated Geometry</h3>
         <div className="bg-app-muted/50 border border-app-border rounded-lg overflow-hidden">
           <table className="w-full">
             <tbody>
@@ -156,9 +156,31 @@ export default function ResultsPanel({ results }: Props) {
         </div>
       </div>
 
+      {/* Compressor Stages */}
+      {results.compressor_stages && Object.keys(results.compressor_stages).length > 0 && (
+        <div>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3">Compressor Stage Counts</h3>
+          <div className="bg-app-muted/50 border border-app-border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <tbody>
+                {Object.entries(results.compressor_stages).map(([section, count]) => (
+                  <tr key={section} className="border-b border-app-border/50 last:border-0">
+                    <td className="py-2 px-3 text-xs text-app-secondary">{section} compressor</td>
+                    <td className="py-2 px-3 text-xs font-medium text-app-text text-right">{count} stage{count !== 1 ? 's' : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-app-secondary mt-2">
+            Axial stages only — assumes ~1.3 pressure ratio per stage. Centrifugal stages not modelled.
+          </p>
+        </div>
+      )}
+
       {/* TIT Fraction */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Combustion Headroom (Tt3 / TIT)</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3">Combustion Headroom (Tt3 / TIT)</h3>
         <div className="bg-app-muted/50 border border-app-border rounded-lg p-3">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-app-text">Tt3 = {s.tt3_k.toFixed(0)} K, TIT = {s.tt4_k.toFixed(0)} K</span>
@@ -187,7 +209,7 @@ export default function ResultsPanel({ results }: Props) {
 
       {/* Cycle States */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Station Thermodynamic States</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3">Station Thermodynamic States</h3>
         <div className="bg-app-muted/50 border border-app-border rounded-lg overflow-hidden">
           <table className="w-full">
             <thead>
@@ -213,7 +235,7 @@ export default function ResultsPanel({ results }: Props) {
 
       {/* Nozzle Exit */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3">Nozzle Exit Conditions</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3">Nozzle Exit Conditions</h3>
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-app-muted/50 border border-app-border rounded-lg p-3">
             <div className="text-xs text-app-secondary mb-1">Core Jet Velocity</div>

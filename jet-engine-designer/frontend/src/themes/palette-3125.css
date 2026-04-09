@@ -6,12 +6,13 @@
 /* Variables stored as bare RGB channels so Tailwind opacity modifiers work.  */
 /* Usage in CSS: rgb(var(--app-bg) / 0.5)                                     */
 :root {
-  --app-bg:             22 24 17;     /* #161811 — palette darkest            */
-  --app-surface:        30 35 26;     /* #1e231a — derived, card background   */
-  --app-raised:         45 54 41;     /* #2d3629 — derived, table headers     */
-  --app-muted:          59 72 52;     /* #3b4834 — palette #2, inputs/badges  */
-  --app-border:         37 44 34;     /* #252c22 — derived, borders           */
-  --app-text:           193 201 205;  /* #c1c9cd — palette lightest           */
-  --app-secondary:      152 158 143;  /* #989e8f — palette #4                 */
-  --app-dim:            108 115 85;   /* #6c7355 — palette #3                 */
+  --app-bg:             13 15 10;     /* #0d0f0a — darkened ~9 steps, deepest olive-black */
+  --app-surface:        19 24 15;     /* #13180f — darkened ~11 steps, card background    */
+  --app-raised:         34 41 29;     /* #22291d — darkened, table headers                */
+  --app-muted:          59 72 52;     /* #3b4834 — palette #2, inputs/badges              */
+  --app-border:         28 34 23;     /* #1c2217 — darkened, borders                      */
+  --app-text:           193 201 205;  /* #c1c9cd — palette lightest                       */
+  --app-secondary:      152 158 143;  /* #989e8f — palette #4                             */
+  --app-dim:            108 115 85;   /* #6c7355 — palette #3                             */
+  --app-accent:         204 144 31;   /* #cc901f — saturated amber gold, earthy accent    */
 }

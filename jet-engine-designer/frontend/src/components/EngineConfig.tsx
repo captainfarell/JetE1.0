@@ -59,7 +59,7 @@ interface SectionProps {
 function Section({ title, children }: SectionProps) {
   return (
     <div className="mb-5">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-3 pb-1 border-b border-app-border">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3 pb-1 border-b border-app-border">
         {title}
       </h3>
       {children}

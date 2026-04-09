@@ -92,6 +92,7 @@ export interface EngineResults {
   bypass_mass_flow_kg_s: number;
   stations: StationData;
   geometry: GeometryData;
+  compressor_stages: Record<string, number>;
   tit_fraction: number;
   propulsive_efficiency: number;
   errors: string[];

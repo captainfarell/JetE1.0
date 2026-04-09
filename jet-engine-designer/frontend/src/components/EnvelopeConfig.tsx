@@ -64,7 +64,7 @@ function Section({ title, subtitle, children }: SectionProps) {
   return (
     <div className="mb-6">
       <div className="mb-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400">{title}</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent">{title}</h3>
         <p className="text-xs text-app-secondary mt-0.5">{subtitle}</p>
       </div>
       {children}

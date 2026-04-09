@@ -75,7 +75,7 @@ export default function HelpSection() {
             <thead>
               <tr className="border-b border-app-border">
                 <th className="text-left py-2 px-3 text-app-secondary font-semibold">Aspect</th>
-                <th className="text-left py-2 px-3 text-blue-400 font-semibold">Turbofan</th>
+                <th className="text-left py-2 px-3 text-app-accent font-semibold">Turbofan</th>
                 <th className="text-left py-2 px-3 text-orange-400 font-semibold">Turbojet</th>
               </tr>
             </thead>
@@ -125,6 +125,10 @@ export default function HelpSection() {
         <h2 className="text-lg font-bold text-app-text mb-3">Key Parameters Explained</h2>
         <div className="space-y-3">
           {[
+            {
+              term: 'International Standard Atmosphere (ISA)',
+              def: 'A standardised atmospheric model (ICAO / ISO 2533) that defines how temperature, pressure, and density vary with altitude, giving engineers a common reference for reporting and comparing engine performance. In the troposphere (0–11 km) temperature decreases at 6.5 K/km from 288.15 K (15 °C) at sea level, and pressure and density fall accordingly. In the lower stratosphere (11–20 km) temperature is constant at 216.65 K (−56.5 °C) while pressure and density continue to decay exponentially. Because thrust, TSFC, and specific power all depend on ambient conditions, quoting a result "at ISA sea-level static" lets you compare any two engines on equal terms. Deviations are written as ISA±ΔT — for example ISA+15 means the ambient temperature is 15 °C above the standard value, the condition used for hot-day performance certification.',
+            },
             {
               term: 'Overall Pressure Ratio (OPR)',
               def: 'The ratio of pressure at the combustor inlet to the pressure at the compressor face. Higher OPR extracts more work from each kg of fuel burned. Modern engines achieve OPR of 35–50, compared to ~7 on early jet engines.',

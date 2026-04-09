@@ -12,6 +12,7 @@ export default {
         'app-text':      'rgb(var(--app-text) / <alpha-value>)',
         'app-secondary': 'rgb(var(--app-secondary) / <alpha-value>)',
         'app-dim':       'rgb(var(--app-dim) / <alpha-value>)',
+        'app-accent':    'rgb(var(--app-accent) / <alpha-value>)',
       },
     },
   },
