@@ -10,6 +10,8 @@ Run with:
     uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 """
 
+import os
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,10 +34,14 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 
-# Allow all origins for development; tighten in production
+# ALLOWED_ORIGINS env var: comma-separated list of allowed origins.
+# Defaults to "*" for local development; set it in production (e.g. Koyeb env vars).
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "*")
+_origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
