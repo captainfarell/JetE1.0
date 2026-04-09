@@ -93,10 +93,6 @@ export default function App() {
       setCalcWarnings(res.warnings);
       if (res.errors.length === 0) {
         setResults(res);
-        // Write computed mass flow back into the form so the disabled input reflects reality
-        if (formData.auto_size_mass_flow) {
-          updateForm({ core_mass_flow_kg_s: res.core_mass_flow_kg_s });
-        }
         setActiveTab('results');
       } else {
         // Clear stale results so the results tab can't show zeroed-out data without context

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, type Dispatch, type SetStateAction } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { getDefaults } from '../services/api';
 import type { CalculateRequest, DefaultsResponse } from '../types/engine';
 
@@ -16,7 +16,7 @@ const DEFAULT_FORM: CalculateRequest = {
   eta_compressor: 0.85,
   eta_turbine: 0.88,
   eta_combustor: 0.99,
-  core_mass_flow_kg_s: 25,
+  core_mass_flow_kg_s: 1,
   aircraft_mass_kg: 500,
   wing_area_m2: null,
   cl_cruise: 0.4,
@@ -31,7 +31,6 @@ const DEFAULT_FORM: CalculateRequest = {
 
 interface UseEngineFormReturn {
   formData: CalculateRequest;
-  setFormData: Dispatch<SetStateAction<CalculateRequest>>;
   defaults: DefaultsResponse | null;
   updateForm: (updates: Partial<CalculateRequest>, onArchitectureChange?: () => void) => void;
 }
@@ -58,5 +57,5 @@ export function useEngineForm(): UseEngineFormReturn {
     [],
   );
 
-  return { formData, setFormData, defaults, updateForm };
+  return { formData, defaults, updateForm };
 }

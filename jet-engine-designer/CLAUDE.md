@@ -21,7 +21,7 @@ jet-engine-designer/
 ├── start.ps1
 ├── backend/app/
 │   ├── main.py                  ← FastAPI routes (4 endpoints, no logic)
-│   ├── config/defaults.py       ← ENGINE_PRESETS, MATERIAL_TIT_RANGES, PARAMETER_DESCRIPTIONS
+│   ├── config/defaults.py       ← ENGINE_PRESETS, MATERIAL_TIT_RANGES, PARAMETER_DESCRIPTIONS (no physics constants — those are in cycle_core.py)
 │   ├── models/
 │   │   ├── inputs.py            ← CalculateRequest, EnvelopeRequest (Pydantic)
 │   │   └── outputs.py           ← EngineResults, EnvelopeResults, GeometryData, PlotData
@@ -38,7 +38,7 @@ jet-engine-designer/
     ├── services/api.ts          ← Axios client: calculateEngine(), calculateEnvelope(), getDefaults()
     ├── themes/                  ← Palette CSS files — see CLAUDE-STYLE.md
     └── components/
-        ├── shared/              ← Reusable UI primitives (import from here, not inline)
+        ├── shared/              ← Reusable UI primitives: FieldLabel, NumberInput, SectionHeader (import from here, not inline)
         ├── EngineConfig.tsx     ← Architecture, pressure ratios, TIT, efficiencies, mass flow
         ├── AircraftConfig.tsx   ← Aircraft + flight condition inputs
         ├── EnvelopeConfig.tsx   ← Sweep range inputs + Generate button

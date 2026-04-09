@@ -41,7 +41,7 @@ from app.models.outputs import (
 from app.physics.atmosphere import standard_atmosphere
 from app.physics.cycle_core import (
     GAMMA, CP, R_AIR, LHV_JET_A,
-    _GEXP, _GEXP_INV,
+    _GEXP,
     compressor_exit_temp,
     turbine_exit_pressure,
     nozzle_exit,
@@ -130,6 +130,10 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         "Shaft mechanical efficiency = 100%",
         "No duct pressure losses",
         "Fuel mass fraction added to core flow (small, usually <3%)",
+        f"Compressor isentropic efficiency η_c = {request.eta_compressor:.2f}",
+        f"Turbine isentropic efficiency η_t = {request.eta_turbine:.2f}",
+        f"Combustor efficiency η_b = {request.eta_combustor:.3f}",
+        f"Fan isentropic efficiency η_f = {request.fan_efficiency:.2f}",
     ]
 
     # ── Input Validation ──────────────────────────────────────────────────────
@@ -429,16 +433,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
 
     # ── Turbine Exit Temperature Check ────────────────────────────────────────
     # Determine final turbine exit temperature for validation
-    if eng == "turbojet" and ns == 3:
-        Tt_exhaust = Tt55
-    elif eng == "turbofan" and ns == 3:
-        Tt_exhaust = Tt55
-    elif eng == "turbofan" and ns == 2:
-        Tt_exhaust = Tt5
-    elif eng == "turbojet" and ns == 2:
-        Tt_exhaust = Tt5
-    else:
-        Tt_exhaust = Tt5
+    Tt_exhaust = Tt55 if ns == 3 else Tt5
 
     if Tt_exhaust < Tt2:
         errors.append(

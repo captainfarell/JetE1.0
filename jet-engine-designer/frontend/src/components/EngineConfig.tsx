@@ -117,7 +117,7 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
               <FieldLabel label="Fan PR" paramKey="fan_pressure_ratio" defaults={defaults} />
               <NumberInput
                 value={formData.fan_pressure_ratio}
-                onChange={v => onChange({ fan_pressure_ratio: parseFloat(v) || 1 })}
+                onChange={v => onChange({ fan_pressure_ratio: isNaN(parseFloat(v)) ? 1 : parseFloat(v) })}
                 min={1}
                 max={3}
                 step={0.05}
@@ -134,7 +134,7 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
           <FieldLabel label="Overall Pressure Ratio (OPR)" paramKey="overall_pressure_ratio" defaults={defaults} />
           <NumberInput
             value={formData.overall_pressure_ratio}
-            onChange={v => onChange({ overall_pressure_ratio: parseFloat(v) || 1 })}
+            onChange={v => onChange({ overall_pressure_ratio: isNaN(parseFloat(v)) ? 1 : parseFloat(v) })}
             min={1.5}
             max={60}
             step={0.5}
@@ -203,14 +203,14 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
         )}
       </div>
 
-      {/* Temperature & Efficiencies */}
+      {/* Temperature */}
       <div className="mb-5">
-        <SectionHeader title="Temperature &amp; Efficiencies" />
+        <SectionHeader title="Temperature" />
         <div>
           <FieldLabel label="Turbine Inlet Temp (TIT) [K]" paramKey="tit_max_k" defaults={defaults} />
           <NumberInput
             value={formData.tit_max_k}
-            onChange={v => onChange({ tit_max_k: parseFloat(v) || 1000 })}
+            onChange={v => onChange({ tit_max_k: isNaN(parseFloat(v)) ? 1000 : parseFloat(v) })}
             min={800}
             max={1800}
             step={10}
@@ -238,51 +238,6 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
             {defaults?.material_tit_ranges.find(m => formData.tit_max_k >= m.t_min_k && formData.tit_max_k <= m.t_max_k)?.label ?? ''}
           </div>
         </div>
-
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <div>
-            <FieldLabel label="Compressor η" paramKey="eta_compressor" defaults={defaults} />
-            <NumberInput
-              value={formData.eta_compressor}
-              onChange={v => onChange({ eta_compressor: parseFloat(v) || 0.85 })}
-              min={0.5}
-              max={1}
-              step={0.01}
-            />
-          </div>
-          <div>
-            <FieldLabel label="Turbine η" paramKey="eta_turbine" defaults={defaults} />
-            <NumberInput
-              value={formData.eta_turbine}
-              onChange={v => onChange({ eta_turbine: parseFloat(v) || 0.88 })}
-              min={0.5}
-              max={1}
-              step={0.01}
-            />
-          </div>
-          <div>
-            <FieldLabel label="Combustor η" paramKey="eta_combustor" defaults={defaults} />
-            <NumberInput
-              value={formData.eta_combustor}
-              onChange={v => onChange({ eta_combustor: parseFloat(v) || 0.99 })}
-              min={0.8}
-              max={1}
-              step={0.001}
-            />
-          </div>
-          {isTurbofan && (
-            <div>
-              <FieldLabel label="Fan η" paramKey="fan_efficiency" defaults={defaults} />
-              <NumberInput
-                value={formData.fan_efficiency}
-                onChange={v => onChange({ fan_efficiency: parseFloat(v) || 0.88 })}
-                min={0.5}
-                max={1}
-                step={0.01}
-              />
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Flow & Size */}
@@ -303,18 +258,15 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
         <FieldLabel label="Core Mass Flow [kg/s]" paramKey="core_mass_flow_kg_s" defaults={defaults} />
         <NumberInput
           value={formData.core_mass_flow_kg_s}
-          onChange={v => onChange({ core_mass_flow_kg_s: parseFloat(v) || 1 })}
+          onChange={v => onChange({ core_mass_flow_kg_s: isNaN(parseFloat(v)) ? 1 : parseFloat(v) })}
           min={0.1}
           max={1000}
           step={1}
           disabled={formData.auto_size_mass_flow}
         />
-        {formData.auto_size_mass_flow && (() => {
-          const hasThrustTarget = formData.compute_thrust_from_drag || formData.target_thrust_n !== null;
-          return hasThrustTarget
-            ? <div className="text-xs text-app-accent mt-1">Will scale to match thrust requirement — calculated value shown after Calculate.</div>
-            : <div className="text-xs text-yellow-400 mt-1">⚠ No thrust target set — go to Aircraft tab and set a thrust requirement, or enable "Compute from drag".</div>;
-        })()}
+        {formData.auto_size_mass_flow && !(formData.compute_thrust_from_drag || formData.target_thrust_n !== null) && (
+          <div className="text-xs text-yellow-400 mt-1">⚠ No thrust target set — go to Aircraft tab and set a thrust requirement, or enable "Compute from drag".</div>
+        )}
         {!formData.auto_size_mass_flow && formData.engine_type === 'turbofan' && formData.bypass_ratio > 0 && (
           <div className="text-xs text-app-secondary mt-1">
             Total air flow: {(formData.core_mass_flow_kg_s * (1 + formData.bypass_ratio)).toFixed(1)} kg/s

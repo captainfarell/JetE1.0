@@ -1,14 +1,9 @@
 """
 Default configuration values for the Jet Engine Designer.
 
-Contains physical constants, material limits, engine presets, and parameter descriptions.
+Contains material limits, engine presets, and parameter descriptions.
+Physical constants live in physics/cycle_core.py.
 """
-
-# ─── Physical Constants ───────────────────────────────────────────────────────
-GAMMA: float = 1.4                  # Ratio of specific heats for air
-CP: float = 1005.0                  # Specific heat at constant pressure [J/(kg·K)]
-R_AIR: float = 287.058              # Specific gas constant for air [J/(kg·K)]
-LHV_JET_A: float = 43.2e6          # Lower heating value of Jet-A fuel [J/kg]
 
 # ─── Material TIT Ranges ─────────────────────────────────────────────────────
 # Each entry: (label, T_min_K, T_max_K, description)
@@ -181,7 +176,7 @@ PARAMETER_DESCRIPTIONS = {
         "label": "Aircraft Mass",
         "description": "Total aircraft mass including fuel, payload, and structure. Used to compute lift and drag forces, and therefore the thrust required for cruise.",
         "typical_range": "500–5,000 kg (GA/light jet), 5,000–100,000 kg (regional/narrowbody), 100,000–600,000 kg (widebody)",
-        "trade_off": "Heavier aircraft requires more thrust, larger engines, and more fuel — all of which add weight in a spiral.",
+        "trade_off": "Heavier aircraft requires more thrust, larger engines, and more fuel — all of which add weight in a spiral.\n\nApp limits: 100–575,000 kg.",
     },
     "cl_cruise": {
         "label": "Cruise Lift Coefficient",

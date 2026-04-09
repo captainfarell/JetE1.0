@@ -40,9 +40,9 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             <FieldLabel label="Aircraft Mass [kg]" paramKey="aircraft_mass_kg" defaults={defaults} />
             <NumberInput
               value={formData.aircraft_mass_kg}
-              onChange={v => onChange({ aircraft_mass_kg: parseFloat(v) || 1000 })}
+              onChange={v => onChange({ aircraft_mass_kg: isNaN(parseFloat(v)) ? 1000 : parseFloat(v) })}
               min={100}
-              max={600000}
+              max={575000}
               step={100}
             />
           </div>
@@ -62,7 +62,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             <FieldLabel label="CL cruise" paramKey="cl_cruise" defaults={defaults} />
             <NumberInput
               value={formData.cl_cruise}
-              onChange={v => onChange({ cl_cruise: parseFloat(v) || 0.1 })}
+              onChange={v => onChange({ cl_cruise: isNaN(parseFloat(v)) ? 0.1 : parseFloat(v) })}
               min={0.05}
               max={2}
               step={0.01}
@@ -72,7 +72,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             <FieldLabel label="CD cruise" paramKey="cd_cruise" defaults={defaults} />
             <NumberInput
               value={formData.cd_cruise}
-              onChange={v => onChange({ cd_cruise: parseFloat(v) || 0.01 })}
+              onChange={v => onChange({ cd_cruise: isNaN(parseFloat(v)) ? 0.01 : parseFloat(v) })}
               min={0.005}
               max={0.5}
               step={0.001}
@@ -96,7 +96,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             <div className="flex items-center gap-2">
               <NumberInput
                 value={formData.cruise_speed_kmh}
-                onChange={v => onChange({ cruise_speed_kmh: parseFloat(v) || 100 })}
+                onChange={v => onChange({ cruise_speed_kmh: isNaN(parseFloat(v)) ? 100 : parseFloat(v) })}
                 min={50}
                 max={3000}
                 step={10}
