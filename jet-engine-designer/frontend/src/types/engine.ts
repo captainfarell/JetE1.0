@@ -24,6 +24,7 @@ export interface CalculateRequest {
   ambient_temperature_override_k: number | null;
   target_thrust_n: number | null;
   compute_thrust_from_drag: boolean;
+  auto_size_mass_flow: boolean;
 }
 
 export interface EnvelopeRequest {

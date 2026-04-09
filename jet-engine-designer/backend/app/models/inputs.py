@@ -91,6 +91,10 @@ class CalculateRequest(BaseModel):
         gt=0.0,
         description="Core air mass flow rate [kg/s]",
     )
+    auto_size_mass_flow: bool = Field(
+        False,
+        description="If True, scale core_mass_flow_kg_s to exactly meet the thrust requirement",
+    )
 
     # ── Aircraft / Flight Condition ──────────────────────────────────────────
     aircraft_mass_kg: float = Field(

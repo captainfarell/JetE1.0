@@ -28,6 +28,12 @@ input[type='number'] {
   background: rgb(var(--app-secondary));
 }
 
+/* Spool button hover */
+.spool-btn:hover {
+  border-color: rgb(var(--app-text)) !important;
+  color: rgb(var(--app-text)) !important;
+}
+
 /* Station table hover */
 .station-row:hover td {
   background-color: rgb(var(--app-muted) / 0.4);

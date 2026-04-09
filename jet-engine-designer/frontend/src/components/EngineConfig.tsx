@@ -72,7 +72,7 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
                         ? 'bg-app-accent/20 border-app-accent text-app-accent'
                         : disabled
                         ? 'bg-app-surface border-app-border text-app-dim cursor-not-allowed'
-                        : 'bg-app-muted border-app-border text-app-text hover:border-app-accent hover:text-app-accent'
+                        : 'spool-btn bg-app-muted border-app-border text-app-text'
                     }`}
                   >
                     {n}
@@ -288,6 +288,18 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
       {/* Flow & Size */}
       <div className="mb-5">
         <SectionHeader title="Flow &amp; Size" />
+        <div className="flex items-center gap-2 mb-2">
+          <input
+            type="checkbox"
+            id="autoSizeMassFlow"
+            checked={formData.auto_size_mass_flow}
+            onChange={e => onChange({ auto_size_mass_flow: e.target.checked })}
+            className="accent-blue-500"
+          />
+          <label htmlFor="autoSizeMassFlow" className="text-xs text-app-secondary">
+            Auto-size from thrust requirement
+          </label>
+        </div>
         <FieldLabel label="Core Mass Flow [kg/s]" paramKey="core_mass_flow_kg_s" defaults={defaults} />
         <NumberInput
           value={formData.core_mass_flow_kg_s}
@@ -295,8 +307,15 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
           min={0.1}
           max={1000}
           step={1}
+          disabled={formData.auto_size_mass_flow}
         />
-        {formData.engine_type === 'turbofan' && formData.bypass_ratio > 0 && (
+        {formData.auto_size_mass_flow && (() => {
+          const hasThrustTarget = formData.compute_thrust_from_drag || formData.target_thrust_n !== null;
+          return hasThrustTarget
+            ? <div className="text-xs text-app-accent mt-1">Will scale to match thrust requirement — calculated value shown after Calculate.</div>
+            : <div className="text-xs text-yellow-400 mt-1">⚠ No thrust target set — go to Aircraft tab and set a thrust requirement, or enable "Compute from drag".</div>;
+        })()}
+        {!formData.auto_size_mass_flow && formData.engine_type === 'turbofan' && formData.bypass_ratio > 0 && (
           <div className="text-xs text-app-secondary mt-1">
             Total air flow: {(formData.core_mass_flow_kg_s * (1 + formData.bypass_ratio)).toFixed(1)} kg/s
             &nbsp;(bypass: {(formData.core_mass_flow_kg_s * formData.bypass_ratio).toFixed(1)} kg/s)

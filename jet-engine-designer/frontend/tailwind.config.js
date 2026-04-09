@@ -23,5 +23,10 @@ export default {
       },
     },
   },
+  safelist: [
+    'hover:border-app-accent',
+    'hover:text-app-accent',
+    'hover:bg-btn-primary-hover',
+  ],
   plugins: [],
 }

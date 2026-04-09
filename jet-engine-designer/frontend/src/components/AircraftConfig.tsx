@@ -93,28 +93,28 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <FieldLabel label="Cruise Speed [km/h]" paramKey="cruise_speed_kmh" defaults={defaults} />
-            <NumberInput
-              value={formData.cruise_speed_kmh}
-              onChange={v => onChange({ cruise_speed_kmh: parseFloat(v) || 100 })}
-              min={50}
-              max={3000}
-              step={10}
-            />
-            <div className="text-xs text-app-secondary mt-1">
-              ≈ {(formData.cruise_speed_kmh / 3.6).toFixed(0)} m/s
+            <div className="flex items-center gap-2">
+              <NumberInput
+                value={formData.cruise_speed_kmh}
+                onChange={v => onChange({ cruise_speed_kmh: parseFloat(v) || 100 })}
+                min={50}
+                max={3000}
+                step={10}
+              />
+              <span className="text-xs text-app-secondary whitespace-nowrap">≈ {(formData.cruise_speed_kmh / 3.6).toFixed(0)} m/s</span>
             </div>
           </div>
           <div>
             <FieldLabel label="Cruise Altitude [m]" paramKey="cruise_altitude_m" defaults={defaults} />
-            <NumberInput
-              value={formData.cruise_altitude_m}
-              onChange={v => onChange({ cruise_altitude_m: parseFloat(v) || 0 })}
-              min={0}
-              max={20000}
-              step={100}
-            />
-            <div className="text-xs text-app-secondary mt-1">
-              ISA T = {isaT.toFixed(1)} K ({(isaT - 273.15).toFixed(1)} °C)
+            <div className="flex items-center gap-2">
+              <NumberInput
+                value={formData.cruise_altitude_m}
+                onChange={v => onChange({ cruise_altitude_m: parseFloat(v) || 0 })}
+                min={0}
+                max={20000}
+                step={100}
+              />
+              <span className="text-xs text-app-secondary whitespace-nowrap">ISA {isaT.toFixed(1)} K</span>
             </div>
           </div>
         </div>

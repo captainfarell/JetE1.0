@@ -25,8 +25,14 @@ function SinglePlot({ plot, title }: SinglePlotProps) {
   function toggleSeries(name: string) {
     setHiddenSeries(prev => {
       const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        // Don't hide the last visible series — Y-axis would lose its domain
+        const visibleCount = plot.series.length - prev.size;
+        if (visibleCount <= 1) return prev;
+        next.add(name);
+      }
       return next;
     });
   }

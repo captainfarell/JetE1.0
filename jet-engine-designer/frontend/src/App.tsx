@@ -89,12 +89,18 @@ export default function App() {
     setCalcWarnings([]);
     try {
       const res = await calculateEngine(formData);
-      setResults(res);
       setCalcErrors(res.errors);
       setCalcWarnings(res.warnings);
-      // Switch to results tab only on success
       if (res.errors.length === 0) {
+        setResults(res);
+        // Write computed mass flow back into the form so the disabled input reflects reality
+        if (formData.auto_size_mass_flow) {
+          updateForm({ core_mass_flow_kg_s: res.core_mass_flow_kg_s });
+        }
         setActiveTab('results');
+      } else {
+        // Clear stale results so the results tab can't show zeroed-out data without context
+        setResults(null);
       }
     } catch (err) {
       setApiError(err instanceof Error ? err.message : String(err));
@@ -166,13 +172,19 @@ export default function App() {
         </div>
       )}
 
+      {/* ── Global calc errors/warnings banner (visible on all tabs) ── */}
+      {(calcErrors.length > 0 || calcWarnings.length > 0) && (
+        <div className="px-4 pt-3 max-w-5xl mx-auto">
+          <ValidationPanel errors={calcErrors} warnings={calcWarnings} />
+        </div>
+      )}
+
       {/* ── Main content ── */}
       <main className="flex-1 p-4 overflow-auto">
 
         {/* ════ ENGINE DESIGN TAB ════ */}
         {activeTab === 'design' && (
           <div className="max-w-5xl mx-auto">
-            <ValidationPanel errors={calcErrors} warnings={calcWarnings} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Left column: engine architecture */}

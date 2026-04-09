@@ -2,158 +2,93 @@
 
 ## Quick orientation
 
-Web app for Brayton cycle jet engine analysis. Backend computes all physics; frontend is pure UI. No physics logic in the frontend — if a calculation is wrong, look in `backend/app/physics/cycle.py`.
+Web app for Brayton cycle jet engine analysis. Backend computes all physics; frontend is pure UI. No physics logic in the frontend — if a calculation is wrong, look in `backend/app/physics/cycle_engine.py`.
 
-**To run (use the launcher script — never start servers manually):**
+**To run (use the launcher — never start servers manually):**
 ```bash
 powershell -ExecutionPolicy Bypass -File start.ps1
 ```
-This kills stale processes on 8000/5173 and opens both servers in separate windows.
-Vite proxies `/api/*` → `http://localhost:8000`. API docs at `http://localhost:8000/api/docs`.
+Kills stale processes on 8000/5173 and opens both servers. Vite proxies `/api/*` → `http://localhost:8000`. API docs at `http://localhost:8000/api/docs`.
 
-**Agent rule:** Only edit files. When a server restart is needed, say so and tell the user to re-run `start.ps1`. Never spawn background server processes.
+**Agent rule:** Only edit files. When a server restart is needed, say so. Never spawn background server processes.
 
 ---
 
-## File map — where to find everything
+## File map
 
 ```
 jet-engine-designer/
-├── start.ps1                ← Dev launcher: kills stale processes, starts backend + frontend
+├── start.ps1
 ├── backend/app/
-│   ├── main.py                  ← FastAPI routes only (4 endpoints, no logic)
+│   ├── main.py                  ← FastAPI routes (4 endpoints, no logic)
 │   ├── config/defaults.py       ← ENGINE_PRESETS, MATERIAL_TIT_RANGES, PARAMETER_DESCRIPTIONS
 │   ├── models/
 │   │   ├── inputs.py            ← CalculateRequest, EnvelopeRequest (Pydantic)
-│   │   └── outputs.py           ← EngineResults, EnvelopeResults, GeometryData, PlotData (Pydantic)
+│   │   └── outputs.py           ← EngineResults, EnvelopeResults, GeometryData, PlotData
 │   └── physics/
 │       ├── atmosphere.py        ← standard_atmosphere(altitude_m) → (T, p, rho)
-│       ├── cycle.py             ← Thin re-export shim (backwards compatibility — do not add logic here)
-│       ├── cycle_core.py        ← Constants (γ, cp, R, LHV) + elementary functions (compressor, turbine, nozzle)
+│       ├── cycle.py             ← Thin re-export shim (do not add logic here)
+│       ├── cycle_core.py        ← Constants + compressor/turbine/nozzle functions
 │       ├── cycle_geometry.py    ← _num_stages(), _estimate_geometry()
 │       └── cycle_engine.py      ← _split_*spool(), calculate_engine(), calculate_envelope()
 └── frontend/src/
-    ├── App.tsx                  ← Root: tab routing, API calls, results state (form state in hook)
-    ├── hooks/
-    │   └── useEngineForm.ts     ← formData + defaults state + updateForm (with architecture-change callback)
+    ├── App.tsx                  ← Root: tab routing, API calls, results state
+    ├── hooks/useEngineForm.ts   ← formData + defaults state + updateForm
     ├── types/engine.ts          ← TypeScript interfaces (must mirror Pydantic models exactly)
     ├── services/api.ts          ← Axios client: calculateEngine(), calculateEnvelope(), getDefaults()
-    ├── themes/
-    │   ├── palette-original.css — dark teal / navy (original)
-    │   ├── palette-3125.css     — earthy green / olive-black
-    │   └── palette-blueprint.css— Prussian blue / sky blue (ACTIVE — imported in main.tsx)
+    ├── themes/                  ← Palette CSS files — see CLAUDE-STYLE.md
     └── components/
         ├── shared/              ← Reusable UI primitives (import from here, not inline)
-        │   ├── Tooltip.tsx      ← Hover tooltip, positioned right of children
-        │   ├── FieldLabel.tsx   ← Label + optional info icon + tooltip (accepts paramKey or tooltip string)
-        │   ├── NumberInput.tsx  ← Styled number input with app-* token classes
-        │   ├── SectionHeader.tsx← h3 with standard section heading style
-        │   └── index.ts         ← Barrel export for all shared components
-        ├── EngineConfig.tsx     ← Architecture inputs: engine type, spools, OPR, TIT, efficiencies
+        ├── EngineConfig.tsx     ← Architecture, pressure ratios, TIT, efficiencies, mass flow
         ├── AircraftConfig.tsx   ← Aircraft + flight condition inputs
         ├── EnvelopeConfig.tsx   ← Sweep range inputs + Generate button
-        ├── EngineLayout.tsx     ← Hardcoded engine section list
-        ├── ResultsPanel.tsx     ← All results display (see section order below)
+        ├── EngineLayout.tsx     ← Hardcoded engine section list (LAYOUTS dict)
+        ├── ResultsPanel.tsx     ← All results display
         ├── PlotsPanel.tsx       ← Recharts envelope plots
-        ├── WorkflowSection.tsx  ← Workflow tab: step-by-step calculation flow with rendered equations
-        └── HelpSection.tsx      ← Learn tab: Brayton cycle explainer + Further Reading
+        ├── WorkflowSection.tsx  ← Step-by-step calculation flow with equations
+        └── HelpSection.tsx      ← Brayton cycle explainer + Further Reading
 ```
 
 ---
 
 ## Physics module index
 
-`cycle.py` is now a thin shim — add logic to the sub-modules below.
-
 | Module | Function | What it does |
 |---|---|---|
 | `cycle_core` | `compressor_exit_temp(T, PR, η)` | Adiabatic compressor exit temperature |
 | `cycle_core` | `turbine_exit_pressure(Tt_in, Tt_out, pt_in, η)` | Turbine exit pressure from temperature drop |
 | `cycle_core` | `nozzle_exit(Tt, pt, p_amb, m_dot)` | Choked or unchoked converging nozzle |
-| `cycle_geometry` | `_num_stages(PR)` | Axial compressor stages for a given PR (assuming 1.3/stage) |
-| `cycle_geometry` | `_estimate_geometry(...)` | Returns GeometryData (diameters + component_positions) |
-| `cycle_engine` | `_split_2spool(OPR, lp_pr, hp_pr)` | Auto-splits OPR between LP and HP |
-| `cycle_engine` | `_split_3spool(OPR, lp_pr, ip_pr, hp_pr)` | Auto-splits OPR between LP, IP, HP |
+| `cycle_geometry` | `_num_stages(PR)` | Axial compressor stages (1.3 PR/stage) |
+| `cycle_geometry` | `_estimate_geometry(...)` | Returns GeometryData |
 | `cycle_engine` | `calculate_engine(request)` | Full Brayton cycle → EngineResults |
 | `cycle_engine` | `calculate_envelope(request)` | Speed + altitude sweeps → EnvelopeResults |
 
-**Constants (do not change without updating tooltips):**
-- `γ = 1.4`, `cp = 1005 J/(kg·K)`, `R = 287.058 J/(kg·K)`
-- Fuel: Jet-A, `LHV = 43.2 MJ/kg`
-- Per-stage axial compressor PR: `1.3`
+**Constants:** γ = 1.4, cp = 1005 J/(kg·K), R = 287.058 J/(kg·K), LHV (Jet-A) = 43.2 MJ/kg, axial PR/stage = 1.3
 
 ---
 
 ## API endpoints
 
-| Method | Path | Handler | Returns |
-|---|---|---|---|
-| GET | `/api/health` | `health_check()` | `{status, service}` |
-| GET | `/api/defaults` | `get_defaults()` | `DefaultsResponse` |
-| POST | `/api/calculate` | `calculate()` | `EngineResults` |
-| POST | `/api/envelope` | `envelope()` | `EnvelopeResults` |
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/api/health` | `{status, service}` |
+| GET | `/api/defaults` | `DefaultsResponse` |
+| POST | `/api/calculate` | `EngineResults` |
+| POST | `/api/envelope` | `EnvelopeResults` |
 
-Errors from bad physics go in `errors: string[]` in the response body — not HTTP errors. HTTP 422 only for unrecoverable exceptions.
-
----
-
-## Engine configurations supported
-
-### Turbojet
-| Sections | 1-spool | 2-spool | 3-spool (disabled) |
-|---|---|---|---|
-| | Intake | Intake | — |
-| | HP Compressor | LP Compressor | — |
-| | Combustor | HP Compressor | — |
-| | HP Turbine | Combustor | — |
-| | Exhaust | HP Turbine | — |
-| | | LP Turbine | — |
-| | | Exhaust | — |
-
-### Turbofan
-| Sections | 1-spool (disabled) | 2-spool | 3-spool |
-|---|---|---|---|
-| | — | Intake | Intake |
-| | — | Fan | Fan |
-| | — | HP Compressor | IP Compressor |
-| | — | Combustor | HP Compressor |
-| | — | HP Turbine | Combustor |
-| | — | LP Turbine | HP Turbine |
-| | — | Exhaust | IP Turbine |
-| | — | — | LP Turbine |
-| | — | — | Exhaust |
-
-**Disabled configurations:** 1-spool turbofan and 3-spool turbojet are disabled in the UI (no commercial production examples). Switching engine type auto-resets to a valid spool count.
-
-**These tables are hardcoded in `EngineLayout.tsx` — `LAYOUTS` dict, keyed by `"${engine_type}-${num_spools}"`.**
-Do not compute them dynamically; edit the dict directly.
+Errors go in `errors: string[]` in the response body — not HTTP errors. HTTP 422 only for unrecoverable exceptions.
 
 ---
 
-## ResultsPanel.tsx — section order
+## Engine architectures
 
-1. Errors & Warnings banners
-2. **Performance Summary** (MetricCard grid: thrust, TSFC, fuel flow, propulsive efficiency, mass flows)
-3. **Estimated Geometry** (inline table: inlet/fan/core diameter, engine length)
-4. **Compressor Stage Counts** — table of stages per compressor section (Fan, LP, IP, HP as applicable); note: axial only, ~1.3 PR/stage
-5. Combustion Headroom — Tt3/TIT progress bar
-6. Station Thermodynamic States — table of Tt and pt per station
-7. Nozzle Exit Conditions
-8. **Model Assumptions** — collapsible accordion
-9. **Literature & References** — collapsible accordion (free resources only: NOAA US Std Atmosphere, NASA Glenn, NACA 1135, NASA SP-36, NIST WebBook)
+Valid: turbojet 1-spool, 2-spool | turbofan 2-spool, 3-spool. **Disabled:** 1-spool turbofan, 3-spool turbojet (no commercial production examples). Switching engine type auto-resets to a valid spool count. Layouts hardcoded in `EngineLayout.tsx` LAYOUTS dict, keyed by `"${engine_type}-${num_spools}"`.
 
----
-
-## HelpSection.tsx — section order
-
-1. How Does a Jet Engine Work?
-2. The Brayton Cycle (4-card grid)
-3. Turbofan vs Turbojet (comparison table + 2-card note on disabled architectures)
-4. Key Parameters Explained (ISA first, then engine parameters)
-5. **Further Reading** — three sub-groups:
-   - Free resources (NASA Glenn, NIST WebBook, YouTube)
-   - Textbooks — purchase required (Rolls-Royce, Saravanamuttoo, Mattingly, Walsh & Fletcher)
-   - Standards — purchase required (SAE ARP755, ISO 2533, ASTM D1655)
+Engine examples (hardcoded in `EngineConfig.tsx`):
+- `turbojet-1`: de Havilland Ghost, GE CJ610, JetCat P200, Microturbo TRI 60
+- `turbojet-2`: P&W JT3C, Bristol Siddeley Olympus 593, GE J79
+- `turbofan-2`: CFM56, GE90, GEnx, Williams FJ44
+- `turbofan-3`: RR RB211, RR Trent 1000, Progress D-18T, Garrett ATF3
 
 ---
 
@@ -162,195 +97,71 @@ Do not compute them dynamically; edit the dict directly.
 ```
 App.tsx state: formData, results, envelopeResults, activeTab, loading*, apiError, calcErrors/Warnings
 
-updateForm(updates)
-  → merges into formData
-  → if engine_type or num_spools changed: clears results + envelopeResults (prevents stale diagram)
+updateForm(updates) → merges into formData
+  → if engine_type or num_spools changed: clears results + envelopeResults
 
-handleCalculate()
-  → POST /api/calculate(formData) → setResults() → switch to 'results' tab on success
-
-handleEnvelope(config)
-  → POST /api/envelope({design: formData, ...config}) → setEnvelopeResults()
+handleCalculate()  → POST /api/calculate(formData) → setResults() → switch to 'results' on success
+handleEnvelope(c)  → POST /api/envelope({design: formData, ...c})
 
 Tab order: 'learn' (default) → 'design' → 'results' → 'envelope' → 'workflow'
 ```
 
-**Key constraint:** `EngineLayout` reads from `formData` (not `results`) so it always shows the current configuration, even before calculation.
+**Key constraint:** `EngineLayout` reads `formData` (not `results`) — always shows current config.
 
 ---
 
-## EngineConfig.tsx — key behaviours
+## Key component behaviours
 
-- **Quick Presets section removed** — presets are gone from the UI; `applyPreset()` function and logic remain in case they are re-added
-- 1-spool button **disabled** for turbofan; 3-spool button **disabled** for turbojet — tooltip: "No commercial production examples"
-- Switching to turbofan while on 1-spool auto-resets to 2 spools; switching to turbojet while on 3-spools auto-resets to 2 spools
-- Below the spool buttons: shows real engine examples for valid combos, or unavailability note for disabled combos
-- Spool PR split: manual override shown only when `num_spools >= 2` and `autoSplit === false`
-- Material TIT buttons set `tit_max_k` to midpoint of the material range
+**EngineConfig:** 1-spool disabled for turbofan; 3-spool disabled for turbojet. Auto-resets spool on type switch. Spool PR manual override shown when `num_spools >= 2` and `autoSplit === false`. Material TIT buttons set `tit_max_k` to midpoint. `auto_size_mass_flow` checkbox scales core mass flow to match thrust requirement at calculation time.
 
-**Engine examples per configuration (hardcoded in `EngineConfig.tsx`):**
-- `turbojet-1`: de Havilland Ghost, GE CJ610, JetCat P200, Microturbo TRI 60
-- `turbojet-2`: P&W JT3C, Bristol Siddeley Olympus 593, GE J79 (CJ805-3)
-- `turbofan-2`: CFM56, GE90, GEnx, Williams FJ44
-- `turbofan-3`: RR RB211, RR Trent 1000, Progress D-18T, Garrett ATF3
+**ResultsPanel order:** Errors/Warnings → Performance Summary → Estimated Geometry → Compressor Stage Counts → Combustion Headroom → Station States → Nozzle Exit → Model Assumptions (collapsible) → Literature & References (collapsible)
+
+**HelpSection order:** How Does a Jet Engine Work? → Brayton Cycle (4-card) → Turbofan vs Turbojet → Key Parameters → Further Reading (free resources / textbooks / standards)
 
 ---
 
-## Physics constants & key formulas
+## Physics formulas
 
-### Intake (isentropic)
 ```
-Tt2 = T_amb · (1 + (γ-1)/2 · M0²)
-pt2 = p_amb · (Tt2/T_amb)^(γ/(γ-1))
-```
-
-### Compressor
-```
-Tt_out = Tt_in · [1 + (PR^((γ-1)/γ) − 1) / η_c]
+Intake:     Tt2 = T_amb·(1+(γ-1)/2·M²)    pt2 = p_amb·(Tt2/T_amb)^(γ/(γ-1))
+Compressor: Tt_out = Tt_in·[1+(PR^((γ-1)/γ)−1)/η_c]
+Combustor:  ṁ_f·LHV·η_b = ṁ_core·cp·(Tt4−Tt3)
+Turbine:    pt_out = pt_in·[1−(Tt_in−Tt_out)/(η_t·Tt_in)]^(γ/(γ-1))
+Nozzle:     critical PR = ((γ+1)/2)^(γ/(γ-1)) ≈ 1.893
 ```
 
-### Combustor
-```
-ṁ_f · LHV · η_b = ṁ_core · cp · (Tt4 − Tt3)
-```
-
-### Turbine exit pressure
-```
-pt_out = pt_in · [1 − (Tt_in − Tt_out) / (η_t · Tt_in)]^(γ/(γ-1))
-```
-
-### Nozzle choke
-Critical PR = `((γ+1)/2)^(γ/(γ-1)) ≈ 1.893`
-
-### TSFC display
-API returns `tsfc_kg_n_h` in kg/(N·h). Display as mg/(N·s): multiply by `1e6 / 3600`. Do **not** use `× 1e4`.
-
-### tit_fraction
-`= Tt3 / TIT_max` — fraction of TIT already consumed by compression. Not a material utilisation fraction.
+**TSFC display:** API returns `tsfc_kg_n_h` [kg/(N·h)]. Display as mg/(N·s): multiply by `1e6 / 3600`.
+**tit_fraction:** `Tt3 / TIT_max` — fraction of TIT consumed by compression (not material utilisation).
+**Station numbering (ARP755):** 0 → 2 → 21 → 25 → 3 → 4 → 45 → 5 → 55 → 9 → 19
 
 ---
 
 ## How to add things
 
-### New input parameter
-1. `models/inputs.py` — add `Field()` with default
-2. `frontend/src/types/engine.ts` — add matching field to `CalculateRequest`
-3. `physics/cycle.py` — use it in `calculate_engine()`
-4. `config/defaults.py` — add to `PARAMETER_DESCRIPTIONS` (auto-shows as tooltip in EngineConfig)
-
-### New output value
-1. `models/outputs.py` — add to `EngineResults` or sub-model
-2. `frontend/src/types/engine.ts` — mirror the field
-3. `components/ResultsPanel.tsx` — display it (see section order above)
-
-### New plot
-1. `physics/cycle.py` — add series to `calculate_envelope()`, return new `PlotData` in `EnvelopeResults`
-2. `models/outputs.py` + `frontend/src/types/engine.ts` — add field to `EnvelopeResults`
-3. `components/PlotsPanel.tsx` — add `<SinglePlot>`
-
-### New engine architecture (e.g. turboprop)
-1. `models/inputs.py` — add type string to `engine_type` field
-2. `physics/cycle.py` — add `elif eng == "..."` block in `calculate_engine()` and geometry in `_estimate_geometry()`
-3. `config/defaults.py` — add preset to `ENGINE_PRESETS`
-4. `components/EngineConfig.tsx` — add option to engine type dropdown
-5. `components/EngineLayout.tsx` — add entry to `LAYOUTS` dict and `SECTION_STYLE` if new section names needed
+**New input:** `inputs.py` Field() → `types/engine.ts` → use in `cycle_engine.py` → `PARAMETER_DESCRIPTIONS` in `defaults.py` (auto-tooltip)
+**New output:** `outputs.py` → `types/engine.ts` → `ResultsPanel.tsx`
+**New plot:** `calculate_envelope()` → `outputs.py` + `types/engine.ts` → `PlotsPanel.tsx` `<SinglePlot>`
+**New architecture:** `inputs.py` type string → `cycle_engine.py` elif + geometry → `defaults.py` preset → `EngineConfig.tsx` dropdown → `EngineLayout.tsx` LAYOUTS dict
 
 ---
 
-## Validation rules (in calculate_engine)
+## Validation rules
 
-**Hard errors** (return zeroed results):
-- `engine_type` not in `{turbojet, turbofan}`
-- `num_spools` not in `{1, 2, 3}`
-- `overall_pressure_ratio ≤ 1`
-- `core_mass_flow_kg_s ≤ 0`
-- `fan_pressure_ratio > overall_pressure_ratio`
-- Any efficiency outside `(0, 1]`
-- `fuel_flow < 0` (TIT below compressor exit temp)
-- Turbine exit temp below intake temp
+**Hard errors** (return zeroed results): invalid `engine_type`/`num_spools`, OPR ≤ 1, mass_flow ≤ 0, fan_PR > OPR, any efficiency outside (0, 1], fuel_flow < 0, turbine exit temp < intake temp.
 
-**Warnings** (logged, calculation proceeds):
-- `M0 > 1.0` — no intake shock modelled
-- `OPR > 40` — surge margin concern
-- `tit_fraction > 0.95` — little combustion headroom
-- `Tt_exhaust < 400 K` — unusually cold exhaust
-- `thrust_margin < 0` — engine undersized for cruise
+**Warnings** (calculation proceeds): M0 > 1.0, OPR > 40, tit_fraction > 0.95, exhaust < 400 K, thrust_margin < 0.
 
 ---
 
-## Model assumptions (shown to users, do not silently change)
+## Model assumptions (shown to users — do not silently change)
 
-- Ideal gas: γ = 1.4, cp = 1005 J/(kg·K)
-- Isentropic intake — no intake pressure loss
-- No combustor pressure loss
-- No turbine cooling air
-- Converging nozzle only — no supersonic expansion
-- 100% shaft mechanical efficiency
-- No duct pressure losses
+Ideal gas γ=1.4, cp=1005 J/(kg·K) · Isentropic intake · No combustor pressure loss · No turbine cooling air · Converging nozzle only · 100% shaft mechanical efficiency · No duct pressure losses
 
 ---
 
-## Station numbering (ARP755)
+## Styling & theming
 
-`0` freestream → `2` compressor/fan inlet → `21` LP/fan exit → `25` IP exit (3-spool) → `3` HP compressor exit → `4` combustor exit (TIT) → `45` HP turbine exit → `5` IP/LP turbine exit → `55` LP turbine exit (3-spool) → `9` core nozzle exit → `19` bypass nozzle exit
-
----
-
-## Styling conventions
-
-All styling via Tailwind utility classes — no custom CSS except in `index.css`:
-- Spin buttons removed from `<input type="number">`
-- Custom scrollbar (`app-bg` track, `app-muted` thumb)
-- `.station-row:hover` tinted via `--station-hover-bg` CSS variable
-- `.tooltip-content` fade-in animation
-- Recharts axis/legend colour overrides via `--recharts-axis-fill` / `--recharts-legend`
-
-### Theming / palette swapping
-
-Colours are defined as CSS custom properties. To switch the entire palette, change the import in `main.tsx`:
-
-```
-frontend/src/themes/
-├── palette-original.css   — dark teal / navy (original)
-├── palette-3125.css       — earthy green / olive-black
-└── palette-blueprint.css  — Prussian blue / sky blue (ACTIVE)
-```
-
-To try a new palette:
-1. Create `frontend/src/themes/palette-XXXX.css` — define all `--app-*` and semantic vars (copy an existing file as template)
-2. Change the `import './themes/palette-XXXX.css'` line in `main.tsx`
-3. Restart Vite (`start.ps1`) — Tailwind must rebuild to pick up new token values
-
-`tailwind.config.js` reads `var(--app-*)` and `var(--btn-*)` / `var(--highlight-*)` — no changes needed there when swapping palettes.
-
-### Design token groups (semantic layer)
-
-All UI element groups have a single token source. Change one variable in the palette file to restyle the entire group:
-
-| Group | Tokens | Elements |
-|---|---|---|
-| **Primary buttons** | `--btn-primary-bg/text/hover` | Calculate Performance, Generate Envelope, Go to Engine Design |
-| **Toggle/spool active** | `app-accent/20 + border-app-accent + text-app-accent` | Spool count buttons (selected state) |
-| **Toggle/spool hover** | `hover:border-app-accent hover:text-app-accent` | Spool count buttons (hover) |
-| **Active tab** | `border-app-accent text-app-accent` | Ribbon tab indicator |
-| **Input fields** | `bg-app-muted border-app-border focus:border-app-accent` | All number inputs, selects |
-| **Highlight/info** | `--highlight-bg/border/text` | Required Thrust MetricCard, envelope info banner |
-| **Section headings** | `text-app-accent` | All h2/h3 section titles |
-| **Status** | Tailwind `green/yellow/red-400` (not tokenized) | Thrust margin, TIT fraction, errors/warnings |
-| **Tooltip icons** | `text-blue-400` | Info (ℹ) icon next to field labels |
-
-**Base colour tokens** (declared in active palette file, variables stored as bare RGB channels):
-- `--app-bg` — page background
-- `--app-surface` — card/panel background
-- `--app-raised` — table headers, sub-panel backgrounds
-- `--app-muted` — inputs, badges
-- `--app-border` — borders
-- `--app-text` — primary text
-- `--app-secondary` — secondary/muted text
-- `--app-dim` — very dim text
-- `--app-accent` — accent (headings, active states, highlights)
-
-**Number inputs:** spin buttons suppressed globally. Do not add them back.
+> For colour tokens, palette files, design token groups, Tailwind conventions, and theming instructions, see **[CLAUDE-STYLE.md](CLAUDE-STYLE.md)**.
 
 ---
 
