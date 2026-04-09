@@ -9,20 +9,20 @@ interface Props {
 // Component colour map
 const COMPONENT_COLORS: Record<string, string> = {
   'Intake':          '#475569',
-  'Fan':             '#38bdf8',
-  'LP Compressor':   '#3b82f6',
-  'IP Compressor':   '#2563eb',
-  'HP Compressor':   '#1d4ed8',
+  'Fan':             '#4fc3f7',
+  'LP Compressor':   '#29b6f6',
+  'IP Compressor':   '#0288d1',
+  'HP Compressor':   '#01579b',
   'Combustor':       '#f59e0b',
   'HP Turbine':      '#ef4444',
   'IP Turbine':      '#f97316',
   'LP Turbine':      '#fb923c',
   'Core Nozzle':     '#64748b',
-  'Bypass Duct':     '#0ea5e9',
+  'Bypass Duct':     '#4fc3f7',
 };
 
 const COMPONENT_STROKES: Record<string, string> = {
-  'Bypass Duct': '#38bdf8',
+  'Bypass Duct': '#4fc3f7',
 };
 
 function getColor(name: string): string {
@@ -123,7 +123,7 @@ function SVGDiagram({ components, inletDiameter, engineLength, svgRef, title }: 
           <g key={i}>
             <rect
               x={x1} y={yTop} width={w} height={h}
-              fill={isBypass ? 'rgba(14,165,233,0.12)' : getColor(comp.name)}
+              fill={isBypass ? 'rgba(79,195,247,0.12)' : getColor(comp.name)}
               stroke={getStroke(comp.name)}
               strokeWidth={isBypass ? 1.5 : 0.8}
               strokeDasharray={getDashArray(comp.name)}
@@ -149,7 +149,7 @@ function SVGDiagram({ components, inletDiameter, engineLength, svgRef, title }: 
                 x={x1 + w / 2}
                 y={yTop + h / 2 + 3}
                 textAnchor="middle"
-                fill="rgba(56,189,248,0.7)"
+                fill="rgba(79,195,247,0.7)"
                 fontSize={9}
                 fontFamily="system-ui, sans-serif"
               >
@@ -182,15 +182,15 @@ function SVGDiagram({ components, inletDiameter, engineLength, svgRef, title }: 
       {/* Airflow arrow */}
       <defs>
         <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L6,3 z" fill="#38bdf8" />
+          <path d="M0,0 L0,6 L6,3 z" fill="#4fc3f7" />
         </marker>
       </defs>
       <line
         x1={PAD_L - 20} y1={centerY - fanRadiusPx * 0.5}
         x2={PAD_L + 5} y2={centerY - fanRadiusPx * 0.5}
-        stroke="#38bdf8" strokeWidth={1.5} markerEnd="url(#arrow)"
+        stroke="#4fc3f7" strokeWidth={1.5} markerEnd="url(#arrow)"
       />
-      <text x={PAD_L - 25} y={centerY - fanRadiusPx * 0.5 - 4} fill="#38bdf8" fontSize={8} textAnchor="middle">
+      <text x={PAD_L - 25} y={centerY - fanRadiusPx * 0.5 - 4} fill="#4fc3f7" fontSize={8} textAnchor="middle">
         Air in
       </text>
 
@@ -234,8 +234,8 @@ function SVGDiagram({ components, inletDiameter, engineLength, svgRef, title }: 
       {components.map((comp, i) => (
         <g key={comp.name} transform={`translate(${PAD_L + i * 108}, ${SVG_H - 12})`}>
           <rect x={0} y={-7} width={12} height={8}
-            fill={comp.name === 'Bypass Duct' ? 'rgba(14,165,233,0.2)' : getColor(comp.name)}
-            stroke={comp.name === 'Bypass Duct' ? '#38bdf8' : 'none'}
+            fill={comp.name === 'Bypass Duct' ? 'rgba(79,195,247,0.2)' : getColor(comp.name)}
+            stroke={comp.name === 'Bypass Duct' ? '#4fc3f7' : 'none'}
             strokeWidth={1}
           />
           <text x={15} y={0} fill="#64748b" fontSize={8} fontFamily="system-ui">{comp.name}</text>
@@ -321,7 +321,7 @@ export default function EngineDiagram({ results }: Props) {
             <div key={comp.name} className="flex items-center gap-1.5 text-xs text-slate-400">
               <span
                 className="w-3 h-3 rounded-sm inline-block"
-                style={{ background: comp.name === 'Bypass Duct' ? 'rgba(14,165,233,0.3)' : (COMPONENT_COLORS[comp.name] ?? '#4b5563') }}
+                style={{ background: comp.name === 'Bypass Duct' ? 'rgba(79,195,247,0.3)' : (COMPONENT_COLORS[comp.name] ?? '#4b5563') }}
               />
               {comp.name}
             </div>

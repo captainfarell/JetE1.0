@@ -36,10 +36,10 @@ function Frac({ num, den }: { num: React.ReactNode; den: React.ReactNode }) {
 // ─── Badge ────────────────────────────────────────────────────────────────────
 
 const KIND_STYLE: Record<BadgeKind, string> = {
-  user:    'bg-green-900/50 text-green-300 border border-green-700/50',
+  user:    'bg-app-muted text-green-300 border border-green-700/50',
   atm:     'bg-amber-900/50 text-amber-300 border border-amber-700/50',
-  derived: 'bg-blue-900/40 text-blue-300 border border-blue-700/40',
-  out:     'bg-purple-900/40 text-purple-300 border border-purple-700/40',
+  derived: 'bg-app-surface text-app-accent border border-app-border',
+  out:     'bg-app-raised text-app-text border border-app-border',
 };
 
 function Badge({ item }: { item: IOItem }) {

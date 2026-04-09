@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Cpu, BookOpen, AlertTriangle, XCircle, Loader, Play, HelpCircle, GitBranch } from 'lucide-react';
 
 import EngineConfig from './components/EngineConfig';
@@ -11,41 +11,13 @@ import PlotsPanel from './components/PlotsPanel';
 import HelpSection from './components/HelpSection';
 import WorkflowSection from './components/WorkflowSection';
 
-import { calculateEngine, calculateEnvelope, getDefaults } from './services/api';
+import { calculateEngine, calculateEnvelope } from './services/api';
+import { useEngineForm } from './hooks/useEngineForm';
 import type {
-  CalculateRequest,
-  DefaultsResponse,
   EngineResults,
   EnvelopeRequest,
   EnvelopeResults,
 } from './types/engine';
-
-// ─── Default form state (medium turbofan at cruise) ───────────────────────────
-const DEFAULT_FORM: CalculateRequest = {
-  engine_type: 'turbofan',
-  num_spools: 2,
-  bypass_ratio: 5.0,
-  fan_pressure_ratio: 1.6,
-  fan_efficiency: 0.88,
-  overall_pressure_ratio: 15.0,
-  lp_pressure_ratio: null,
-  ip_pressure_ratio: null,
-  hp_pressure_ratio: null,
-  tit_max_k: 1400,
-  eta_compressor: 0.85,
-  eta_turbine: 0.88,
-  eta_combustor: 0.99,
-  core_mass_flow_kg_s: 25,
-  aircraft_mass_kg: 5000,
-  wing_area_m2: null,
-  cl_cruise: 0.4,
-  cd_cruise: 0.04,
-  cruise_speed_kmh: 500,
-  cruise_altitude_m: 8000,
-  ambient_temperature_override_k: null,
-  target_thrust_n: null,
-  compute_thrust_from_drag: true,
-};
 
 // ─── Tab definition ───────────────────────────────────────────────────────────
 type TabId = 'design' | 'results' | 'envelope' | 'learn' | 'workflow';
@@ -87,8 +59,7 @@ function ValidationPanel({ errors, warnings }: { errors: string[]; warnings: str
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [formData, setFormData] = useState<CalculateRequest>(DEFAULT_FORM);
-  const [defaults, setDefaults] = useState<DefaultsResponse | null>(null);
+  const { formData, defaults, updateForm } = useEngineForm();
   const [results, setResults] = useState<EngineResults | null>(null);
   const [envelopeResults, setEnvelopeResults] = useState<EnvelopeResults | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('learn');
@@ -98,24 +69,18 @@ export default function App() {
   const [calcErrors, setCalcErrors] = useState<string[]>([]);
   const [calcWarnings, setCalcWarnings] = useState<string[]>([]);
 
-  // Load defaults on mount
-  useEffect(() => {
-    getDefaults()
-      .then(setDefaults)
-      .catch(() => {
-        // Silently ignore — defaults are optional for the UI to function
+  // Wrapper that threads the architecture-change side-effect into the hook's updateForm.
+  // Clear results when the engine topology changes — the old diagram would show
+  // components (e.g. LP Turbine) that belong to a different architecture.
+  const handleFormChange = useCallback(
+    (updates: Parameters<typeof updateForm>[0]) => {
+      updateForm(updates, () => {
+        setResults(null);
+        setEnvelopeResults(null);
       });
-  }, []);
-
-  const updateForm = useCallback((updates: Partial<CalculateRequest>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-    // Clear results when the engine topology changes — the old diagram would show
-    // components (e.g. LP Turbine) that belong to a different architecture.
-    if ('engine_type' in updates || 'num_spools' in updates) {
-      setResults(null);
-      setEnvelopeResults(null);
-    }
-  }, []);
+    },
+    [updateForm],
+  );
 
   async function handleCalculate() {
     setLoadingCalc(true);
@@ -217,7 +182,7 @@ export default function App() {
                 </h2>
                 <EngineConfig
                   formData={formData}
-                  onChange={updateForm}
+                  onChange={handleFormChange}
                   defaults={defaults}
                 />
               </div>
@@ -229,7 +194,7 @@ export default function App() {
                 </h2>
                 <AircraftConfig
                   formData={formData}
-                  onChange={updateForm}
+                  onChange={handleFormChange}
                   defaults={defaults}
                 />
               </div>

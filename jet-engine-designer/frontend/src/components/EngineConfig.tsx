@@ -1,96 +1,11 @@
 import React, { useState } from 'react';
-import { Info } from 'lucide-react';
 import type { CalculateRequest, DefaultsResponse, EnginePreset } from '../types/engine';
+import { FieldLabel, NumberInput, SectionHeader } from './shared';
 
 interface Props {
   formData: CalculateRequest;
   onChange: (updates: Partial<CalculateRequest>) => void;
   defaults: DefaultsResponse | null;
-}
-
-interface TooltipProps {
-  text: string;
-  children: React.ReactNode;
-}
-
-function Tooltip({ text, children }: TooltipProps) {
-  const [visible, setVisible] = useState(false);
-  return (
-    <span
-      className="relative inline-block"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-    >
-      {children}
-      {visible && (
-        <div className="tooltip-content absolute z-50 left-full ml-2 top-0 w-72 bg-app-muted border border-app-secondary text-app-text text-xs rounded-lg p-3 shadow-xl">
-          {text}
-        </div>
-      )}
-    </span>
-  );
-}
-
-interface FieldLabelProps {
-  label: string;
-  paramKey?: string;
-  defaults: DefaultsResponse | null;
-}
-
-function FieldLabel({ label, paramKey, defaults }: FieldLabelProps) {
-  const desc = paramKey && defaults ? defaults.parameter_descriptions[paramKey] : null;
-  return (
-    <label className="flex items-center gap-1 text-sm font-medium text-app-text mb-1">
-      {label}
-      {desc && (
-        <Tooltip text={`${desc.description}\n\nTypical: ${desc.typical_range}\n\nTrade-off: ${desc.trade_off}`}>
-          <Info size={13} className="text-blue-400 cursor-help" />
-        </Tooltip>
-      )}
-    </label>
-  );
-}
-
-interface SectionProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-function Section({ title, children }: SectionProps) {
-  return (
-    <div className="mb-5">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3 pb-1 border-b border-app-border">
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-}
-
-interface InputProps {
-  value: number | string;
-  onChange: (v: string) => void;
-  type?: string;
-  min?: number;
-  max?: number;
-  step?: number;
-  disabled?: boolean;
-  className?: string;
-}
-
-function NumberInput({ value, onChange, min, max, step = 0.01, disabled, className = '' }: InputProps) {
-  return (
-    <input
-      type="number"
-      className={`w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-app-accent focus:ring-1 focus:ring-app-accent disabled:opacity-50 ${className}`}
-      value={value}
-      min={min}
-      max={max}
-      step={step}
-      disabled={disabled}
-      onChange={e => onChange(e.target.value)}
-    />
-  );
 }
 
 export default function EngineConfig({ formData, onChange, defaults }: Props) {
@@ -120,7 +35,8 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
   return (
     <div>
       {/* Architecture */}
-      <Section title="Architecture">
+      <div className="mb-5">
+        <SectionHeader title="Architecture" />
         <div className="grid grid-cols-2 gap-3">
           <div>
             <FieldLabel label="Engine Type" paramKey="engine_type" defaults={defaults} />
@@ -209,10 +125,11 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
             </div>
           </div>
         )}
-      </Section>
+      </div>
 
       {/* Pressure Ratios */}
-      <Section title="Pressure Ratios">
+      <div className="mb-5">
+        <SectionHeader title="Pressure Ratios" />
         <div>
           <FieldLabel label="Overall Pressure Ratio (OPR)" paramKey="overall_pressure_ratio" defaults={defaults} />
           <NumberInput
@@ -284,10 +201,11 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
             )}
           </div>
         )}
-      </Section>
+      </div>
 
       {/* Temperature & Efficiencies */}
-      <Section title="Temperature &amp; Efficiencies">
+      <div className="mb-5">
+        <SectionHeader title="Temperature &amp; Efficiencies" />
         <div>
           <FieldLabel label="Turbine Inlet Temp (TIT) [K]" paramKey="tit_max_k" defaults={defaults} />
           <NumberInput
@@ -365,10 +283,11 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
             </div>
           )}
         </div>
-      </Section>
+      </div>
 
       {/* Flow & Size */}
-      <Section title="Flow &amp; Size">
+      <div className="mb-5">
+        <SectionHeader title="Flow &amp; Size" />
         <FieldLabel label="Core Mass Flow [kg/s]" paramKey="core_mass_flow_kg_s" defaults={defaults} />
         <NumberInput
           value={formData.core_mass_flow_kg_s}
@@ -383,7 +302,7 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
             &nbsp;(bypass: {(formData.core_mass_flow_kg_s * formData.bypass_ratio).toFixed(1)} kg/s)
           </div>
         )}
-      </Section>
+      </div>
     </div>
   );
 }

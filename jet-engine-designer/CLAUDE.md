@@ -28,16 +28,27 @@ jet-engine-designer/
 │   │   └── outputs.py           ← EngineResults, EnvelopeResults, GeometryData, PlotData (Pydantic)
 │   └── physics/
 │       ├── atmosphere.py        ← standard_atmosphere(altitude_m) → (T, p, rho)
-│       └── cycle.py             ← ALL thermodynamic calculations (see breakdown below)
+│       ├── cycle.py             ← Thin re-export shim (backwards compatibility — do not add logic here)
+│       ├── cycle_core.py        ← Constants (γ, cp, R, LHV) + elementary functions (compressor, turbine, nozzle)
+│       ├── cycle_geometry.py    ← _num_stages(), _estimate_geometry()
+│       └── cycle_engine.py      ← _split_*spool(), calculate_engine(), calculate_envelope()
 └── frontend/src/
-    ├── App.tsx                  ← Root: state, tab routing, API calls, form→result flow
+    ├── App.tsx                  ← Root: tab routing, API calls, results state (form state in hook)
+    ├── hooks/
+    │   └── useEngineForm.ts     ← formData + defaults state + updateForm (with architecture-change callback)
     ├── types/engine.ts          ← TypeScript interfaces (must mirror Pydantic models exactly)
     ├── services/api.ts          ← Axios client: calculateEngine(), calculateEnvelope(), getDefaults()
     ├── themes/
-    │   ├── active.css           ← (unused — main.tsx imports palette directly)
     │   ├── palette-original.css — dark teal / navy (original)
-    │   └── palette-3125.css    — earthy green / olive-black (ACTIVE — imported in main.tsx)
+    │   ├── palette-3125.css     — earthy green / olive-black
+    │   └── palette-blueprint.css— Prussian blue / sky blue (ACTIVE — imported in main.tsx)
     └── components/
+        ├── shared/              ← Reusable UI primitives (import from here, not inline)
+        │   ├── Tooltip.tsx      ← Hover tooltip, positioned right of children
+        │   ├── FieldLabel.tsx   ← Label + optional info icon + tooltip (accepts paramKey or tooltip string)
+        │   ├── NumberInput.tsx  ← Styled number input with app-* token classes
+        │   ├── SectionHeader.tsx← h3 with standard section heading style
+        │   └── index.ts         ← Barrel export for all shared components
         ├── EngineConfig.tsx     ← Architecture inputs: engine type, spools, OPR, TIT, efficiencies
         ├── AircraftConfig.tsx   ← Aircraft + flight condition inputs
         ├── EnvelopeConfig.tsx   ← Sweep range inputs + Generate button
@@ -50,19 +61,21 @@ jet-engine-designer/
 
 ---
 
-## cycle.py — function index
+## Physics module index
 
-| Function | What it does |
-|---|---|
-| `compressor_exit_temp(T, PR, η)` | Adiabatic compressor exit temperature |
-| `turbine_exit_pressure(Tt_in, Tt_out, pt_in, η)` | Turbine exit pressure from temperature drop |
-| `nozzle_exit(Tt, pt, p_amb, m_dot)` | Choked or unchoked converging nozzle |
-| `_split_2spool(OPR, lp_pr, hp_pr)` | Auto-splits OPR between LP and HP |
-| `_split_3spool(OPR, lp_pr, ip_pr, hp_pr)` | Auto-splits OPR between LP, IP, HP |
-| `_num_stages(PR)` | Axial compressor stages for a given PR (assuming 1.3/stage) |
-| `_estimate_geometry(...)` | Returns GeometryData (diameters + component_positions) |
-| `calculate_engine(request)` | Full Brayton cycle → EngineResults |
-| `calculate_envelope(request)` | Speed + altitude sweeps → EnvelopeResults |
+`cycle.py` is now a thin shim — add logic to the sub-modules below.
+
+| Module | Function | What it does |
+|---|---|---|
+| `cycle_core` | `compressor_exit_temp(T, PR, η)` | Adiabatic compressor exit temperature |
+| `cycle_core` | `turbine_exit_pressure(Tt_in, Tt_out, pt_in, η)` | Turbine exit pressure from temperature drop |
+| `cycle_core` | `nozzle_exit(Tt, pt, p_amb, m_dot)` | Choked or unchoked converging nozzle |
+| `cycle_geometry` | `_num_stages(PR)` | Axial compressor stages for a given PR (assuming 1.3/stage) |
+| `cycle_geometry` | `_estimate_geometry(...)` | Returns GeometryData (diameters + component_positions) |
+| `cycle_engine` | `_split_2spool(OPR, lp_pr, hp_pr)` | Auto-splits OPR between LP and HP |
+| `cycle_engine` | `_split_3spool(OPR, lp_pr, ip_pr, hp_pr)` | Auto-splits OPR between LP, IP, HP |
+| `cycle_engine` | `calculate_engine(request)` | Full Brayton cycle → EngineResults |
+| `cycle_engine` | `calculate_envelope(request)` | Speed + altitude sweeps → EnvelopeResults |
 
 **Constants (do not change without updating tooltips):**
 - `γ = 1.4`, `cp = 1005 J/(kg·K)`, `R = 287.058 J/(kg·K)`

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { Info } from 'lucide-react';
 import type { CalculateRequest, DefaultsResponse } from '../types/engine';
+import { FieldLabel, NumberInput, SectionHeader } from './shared';
 
 interface Props {
   formData: CalculateRequest;
@@ -13,84 +13,6 @@ function isaTemp(altM: number): number {
   const T0 = 288.15, L = 0.0065;
   if (altM <= 11000) return T0 - L * altM;
   return 216.65;
-}
-
-interface FieldLabelProps {
-  label: string;
-  tooltip?: string;
-  defaults?: DefaultsResponse | null;
-  paramKey?: string;
-}
-
-function FieldLabel({ label, tooltip, defaults, paramKey }: FieldLabelProps) {
-  const [visible, setVisible] = React.useState(false);
-  const desc = paramKey && defaults ? defaults.parameter_descriptions[paramKey] : null;
-  const tip = tooltip ?? (desc ? `${desc.description}\n\nTypical: ${desc.typical_range}` : null);
-
-  return (
-    <label className="flex items-center gap-1 text-sm font-medium text-app-text mb-1">
-      {label}
-      {tip && (
-        <span
-          className="relative inline-block"
-          onMouseEnter={() => setVisible(true)}
-          onMouseLeave={() => setVisible(false)}
-        >
-          <Info size={13} className="text-blue-400 cursor-help" />
-          {visible && (
-            <div className="tooltip-content absolute z-50 left-full ml-2 top-0 w-72 bg-app-muted border border-app-secondary text-app-text text-xs rounded-lg p-3 shadow-xl whitespace-pre-line">
-              {tip}
-            </div>
-          )}
-        </span>
-      )}
-    </label>
-  );
-}
-
-interface SectionProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-function Section({ title, children }: SectionProps) {
-  return (
-    <div className="mb-5">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3 pb-1 border-b border-app-border">
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-}
-
-function NumInput({
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  disabled,
-}: {
-  value: number | string;
-  onChange: (v: string) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-  disabled?: boolean;
-}) {
-  return (
-    <input
-      type="number"
-      className="w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-      value={value}
-      min={min}
-      max={max}
-      step={step}
-      disabled={disabled}
-      onChange={e => onChange(e.target.value)}
-    />
-  );
 }
 
 export default function AircraftConfig({ formData, onChange, defaults }: Props) {
@@ -111,11 +33,12 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
   return (
     <div>
       {/* Aircraft */}
-      <Section title="Aircraft">
+      <div className="mb-5">
+        <SectionHeader title="Aircraft" />
         <div className="grid grid-cols-2 gap-3">
           <div>
             <FieldLabel label="Aircraft Mass [kg]" paramKey="aircraft_mass_kg" defaults={defaults} />
-            <NumInput
+            <NumberInput
               value={formData.aircraft_mass_kg}
               onChange={v => onChange({ aircraft_mass_kg: parseFloat(v) || 1000 })}
               min={100}
@@ -125,7 +48,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
           </div>
           <div>
             <FieldLabel label="Wing Area [m²]" tooltip="Optional. If provided, enables dynamic-pressure-based drag calculation." />
-            <NumInput
+            <NumberInput
               value={formData.wing_area_m2 ?? ''}
               onChange={v => {
                 const n = parseFloat(v);
@@ -137,7 +60,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
           </div>
           <div>
             <FieldLabel label="CL cruise" paramKey="cl_cruise" defaults={defaults} />
-            <NumInput
+            <NumberInput
               value={formData.cl_cruise}
               onChange={v => onChange({ cl_cruise: parseFloat(v) || 0.1 })}
               min={0.05}
@@ -147,7 +70,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
           </div>
           <div>
             <FieldLabel label="CD cruise" paramKey="cd_cruise" defaults={defaults} />
-            <NumInput
+            <NumberInput
               value={formData.cd_cruise}
               onChange={v => onChange({ cd_cruise: parseFloat(v) || 0.01 })}
               min={0.005}
@@ -162,14 +85,15 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             <span>Estimated cruise drag = <strong className="text-app-text">{estimatedDrag} N</strong></span>
           )}
         </div>
-      </Section>
+      </div>
 
       {/* Flight Condition */}
-      <Section title="Flight Condition">
+      <div className="mb-5">
+        <SectionHeader title="Flight Condition" />
         <div className="grid grid-cols-2 gap-3">
           <div>
             <FieldLabel label="Cruise Speed [km/h]" paramKey="cruise_speed_kmh" defaults={defaults} />
-            <NumInput
+            <NumberInput
               value={formData.cruise_speed_kmh}
               onChange={v => onChange({ cruise_speed_kmh: parseFloat(v) || 100 })}
               min={50}
@@ -182,7 +106,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
           </div>
           <div>
             <FieldLabel label="Cruise Altitude [m]" paramKey="cruise_altitude_m" defaults={defaults} />
-            <NumInput
+            <NumberInput
               value={formData.cruise_altitude_m}
               onChange={v => onChange({ cruise_altitude_m: parseFloat(v) || 0 })}
               min={0}
@@ -201,7 +125,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             tooltip="Override the ISA ambient temperature. Leave empty to use standard ISA."
           />
           <div className="flex gap-2 items-center">
-            <NumInput
+            <NumberInput
               value={formData.ambient_temperature_override_k ?? ''}
               onChange={v => {
                 const n = parseFloat(v);
@@ -224,10 +148,11 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             <div className="text-xs text-app-secondary mt-1">Using ISA: {isaT.toFixed(1)} K</div>
           )}
         </div>
-      </Section>
+      </div>
 
       {/* Thrust Target */}
-      <Section title="Thrust Requirement">
+      <div className="mb-5">
+        <SectionHeader title="Thrust Requirement" />
         <div className="space-y-2">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -254,7 +179,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
         {!formData.compute_thrust_from_drag && (
           <div className="mt-3">
             <FieldLabel label="Target Thrust [N]" />
-            <NumInput
+            <NumberInput
               value={formData.target_thrust_n ?? ''}
               onChange={v => onChange({ target_thrust_n: parseFloat(v) || null })}
               min={0}
@@ -264,11 +189,11 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
         )}
 
         {formData.compute_thrust_from_drag && estimatedDrag && (
-          <div className="mt-2 text-xs text-blue-400 bg-blue-900/20 rounded-md p-2">
+          <div className="mt-2 text-xs text-app-accent bg-app-surface rounded-md p-2">
             Required thrust at cruise: ~{estimatedDrag} N per engine
           </div>
         )}
-      </Section>
+      </div>
     </div>
   );
 }

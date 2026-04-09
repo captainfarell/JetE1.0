@@ -1,6 +1,7 @@
 import React from 'react';
 import { Play, Loader } from 'lucide-react';
 import type { CalculateRequest } from '../types/engine';
+import { NumberInput } from './shared';
 
 interface Props {
   formData: CalculateRequest;
@@ -25,32 +26,6 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
       <label className="text-xs text-app-secondary whitespace-nowrap w-[45%] shrink-0">{label}</label>
       <div className="flex-1">{children}</div>
     </div>
-  );
-}
-
-function NumInput({
-  value,
-  onChange,
-  min,
-  max,
-  step,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-}) {
-  return (
-    <input
-      type="number"
-      className="w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-app-accent focus:ring-1 focus:ring-app-accent"
-      value={value}
-      min={min}
-      max={max}
-      step={step ?? 1}
-      onChange={e => onChange(parseFloat(e.target.value) || 0)}
-    />
   );
 }
 
@@ -113,16 +88,16 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
       >
         <div className="space-y-2">
           <FieldRow label="Min Speed [km/h]">
-            <NumInput value={config.speedMinKmh} onChange={v => set({ speedMinKmh: v })} min={50} max={2000} step={50} />
+            <NumberInput value={config.speedMinKmh} onChange={v => set({ speedMinKmh: parseFloat(v) || 0 })} min={50} max={2000} step={50} />
           </FieldRow>
           <FieldRow label="Max Speed [km/h]">
-            <NumInput value={config.speedMaxKmh} onChange={v => set({ speedMaxKmh: v })} min={100} max={3000} step={50} />
+            <NumberInput value={config.speedMaxKmh} onChange={v => set({ speedMaxKmh: parseFloat(v) || 0 })} min={100} max={3000} step={50} />
           </FieldRow>
           <FieldRow label="Steps">
-            <NumInput value={config.speedSteps} onChange={v => set({ speedSteps: Math.round(v) })} min={5} max={100} step={5} />
+            <NumberInput value={config.speedSteps} onChange={v => set({ speedSteps: Math.round(parseFloat(v) || 0) })} min={5} max={100} step={5} />
           </FieldRow>
           <FieldRow label="Fixed Altitude [m]">
-            <NumInput value={config.altitudeM} onChange={v => set({ altitudeM: v })} min={0} max={20000} step={500} />
+            <NumberInput value={config.altitudeM} onChange={v => set({ altitudeM: parseFloat(v) || 0 })} min={0} max={20000} step={500} />
           </FieldRow>
         </div>
         <div className="text-xs text-app-secondary mt-1 ml-[45%]">Cruise altitude: {formData.cruise_altitude_m} m</div>
@@ -134,16 +109,16 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
       >
         <div className="space-y-2">
           <FieldRow label="Min Altitude [m]">
-            <NumInput value={config.altitudeMinM} onChange={v => set({ altitudeMinM: v })} min={0} max={20000} step={500} />
+            <NumberInput value={config.altitudeMinM} onChange={v => set({ altitudeMinM: parseFloat(v) || 0 })} min={0} max={20000} step={500} />
           </FieldRow>
           <FieldRow label="Max Altitude [m]">
-            <NumInput value={config.altitudeMaxM} onChange={v => set({ altitudeMaxM: v })} min={500} max={20000} step={500} />
+            <NumberInput value={config.altitudeMaxM} onChange={v => set({ altitudeMaxM: parseFloat(v) || 0 })} min={500} max={20000} step={500} />
           </FieldRow>
           <FieldRow label="Steps">
-            <NumInput value={config.altitudeSteps} onChange={v => set({ altitudeSteps: Math.round(v) })} min={5} max={100} step={5} />
+            <NumberInput value={config.altitudeSteps} onChange={v => set({ altitudeSteps: Math.round(parseFloat(v) || 0) })} min={5} max={100} step={5} />
           </FieldRow>
           <FieldRow label="Fixed Speed [km/h]">
-            <NumInput value={config.speedKmh} onChange={v => set({ speedKmh: v })} min={50} max={3000} step={50} />
+            <NumberInput value={config.speedKmh} onChange={v => set({ speedKmh: parseFloat(v) || 0 })} min={50} max={3000} step={50} />
           </FieldRow>
         </div>
         <div className="text-xs text-app-secondary mt-1 ml-[45%]">Cruise speed: {formData.cruise_speed_kmh} km/h</div>

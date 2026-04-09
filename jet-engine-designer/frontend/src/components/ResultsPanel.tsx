@@ -43,7 +43,7 @@ function StationRow({ label, tt, pt }: { label: string; tt: number | null; pt: n
   if (tt === null && pt === null) return null;
   return (
     <tr className="station-row border-b border-app-border/50 hover:bg-app-muted/30 transition-colors">
-      <td className="py-2 px-3 text-xs font-medium text-blue-300">{label}</td>
+      <td className="py-2 px-3 text-xs font-medium text-app-accent">{label}</td>
       <td className="py-2 px-3 text-xs text-app-text text-right">
         {tt !== null ? `${tt.toFixed(1)} K` : '—'}
       </td>

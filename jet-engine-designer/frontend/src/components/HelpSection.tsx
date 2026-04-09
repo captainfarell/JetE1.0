@@ -21,7 +21,7 @@ export default function HelpSection() {
           A jet engine produces thrust by the reaction principle — Newton's Third Law. Air is
           ingested at the front, energy is added by burning fuel, and the hot gas is accelerated
           out of a nozzle at the back. The momentum increase of the air produces a forward force
-          on the engine. In simplified form: <strong className="text-blue-300">T ≈ ṁ · (Vⱼ − V₀)</strong>,
+          on the engine. In simplified form: <strong className="text-app-accent">T ≈ ṁ · (Vⱼ − V₀)</strong>,
           where ṁ is the air mass flow rate, Vⱼ is the jet exit velocity, and V₀ is the flight speed.
           Higher jet velocity or more mass flow means more thrust.
         </p>
