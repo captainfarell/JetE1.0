@@ -10,20 +10,28 @@ interface MetricCardProps {
   label: string;
   value: string;
   sub?: string;
-  color?: 'default' | 'green' | 'red' | 'yellow';
+  color?: 'default' | 'green' | 'red' | 'yellow' | 'highlight';
 }
 
 function MetricCard({ label, value, sub, color = 'default' }: MetricCardProps) {
   const colorClasses = {
-    default: 'border-app-border',
-    green:   'border-green-600 bg-green-900/20',
-    red:     'border-red-600 bg-red-900/20',
-    yellow:  'border-yellow-600 bg-yellow-900/20',
+    default:   'border-app-border',
+    green:     'border-green-600 bg-green-900/20',
+    red:       'border-red-600 bg-red-900/20',
+    yellow:    'border-yellow-600 bg-yellow-900/20',
+    highlight: 'border-highlight-border bg-highlight/40',
+  };
+  const valueClasses = {
+    default:   'text-app-text',
+    green:     'text-green-400',
+    red:       'text-red-400',
+    yellow:    'text-yellow-400',
+    highlight: 'text-highlight-text',
   };
   return (
     <div className={`bg-app-muted/50 border rounded-lg p-3 ${colorClasses[color]}`}>
       <div className="text-xs text-app-secondary mb-1">{label}</div>
-      <div className={`text-xl font-bold ${color === 'red' ? 'text-red-400' : color === 'green' ? 'text-green-400' : color === 'yellow' ? 'text-yellow-400' : 'text-app-text'}`}>
+      <div className={`text-xl font-bold ${valueClasses[color]}`}>
         {value}
       </div>
       {sub && <div className="text-xs text-app-secondary mt-0.5">{sub}</div>}
@@ -97,6 +105,7 @@ export default function ResultsPanel({ results }: Props) {
             label="Thrust Required"
             value={`${(results.thrust_required_n / 1000).toFixed(2)} kN`}
             sub={`${results.thrust_required_n.toFixed(0)} N`}
+            color="highlight"
           />
           <MetricCard
             label="Thrust Margin"

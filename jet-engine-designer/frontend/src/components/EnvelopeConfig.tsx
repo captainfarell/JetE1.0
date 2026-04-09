@@ -44,7 +44,7 @@ function NumInput({
   return (
     <input
       type="number"
-      className="w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+      className="w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-app-accent focus:ring-1 focus:ring-app-accent"
       value={value}
       min={min}
       max={max}
@@ -101,7 +101,7 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
 
   return (
     <div>
-      <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-3 mb-5 text-xs text-blue-300">
+      <div className="bg-app-raised border border-app-border rounded-lg p-3 mb-5 text-xs text-app-secondary">
         The envelope sweeps compute engine performance at every combination of speed/altitude,
         calling the full Brayton cycle for each point. Use fewer steps for faster computation.
         <span className="ml-1 font-semibold">Est. {estimatedPoints} calculation points.</span>
@@ -152,7 +152,7 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
       <button
         onClick={() => onGenerate(config)}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-app-muted disabled:cursor-not-allowed text-app-text font-semibold py-3 rounded-lg transition-colors"
+        className="w-full flex items-center justify-center gap-2 bg-btn-primary hover:bg-btn-primary-hover disabled:bg-app-muted disabled:cursor-not-allowed text-btn-primary-text font-semibold py-3 rounded-lg transition-colors"
       >
         {loading ? (
           <><Loader size={16} className="animate-spin" /> Computing Envelope...</>

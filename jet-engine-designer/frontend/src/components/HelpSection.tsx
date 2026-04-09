@@ -151,7 +151,7 @@ export default function HelpSection() {
             },
           ].map(({ term, def }) => (
             <div key={term} className="bg-app-muted/30 border border-app-border rounded-lg p-3">
-              <div className="text-sm font-semibold text-blue-300 mb-1">{term}</div>
+              <div className="text-sm font-semibold text-app-text mb-1">{term}</div>
               <p className="text-xs text-app-secondary leading-relaxed">{def}</p>
             </div>
           ))}

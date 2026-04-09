@@ -298,30 +298,44 @@ Colours are defined as CSS custom properties. To switch the entire palette, chan
 
 ```
 frontend/src/themes/
-├── palette-original.css  — dark teal / navy (original)
-└── palette-3125.css      — earthy green / olive-black (ACTIVE)
+├── palette-original.css   — dark teal / navy (original)
+├── palette-3125.css       — earthy green / olive-black
+└── palette-blueprint.css  — Prussian blue / sky blue (ACTIVE)
 ```
 
 To try a new palette:
-1. Create `frontend/src/themes/palette-XXXX.css` — define all `--app-*` vars (copy an existing file as template)
+1. Create `frontend/src/themes/palette-XXXX.css` — define all `--app-*` and semantic vars (copy an existing file as template)
 2. Change the `import './themes/palette-XXXX.css'` line in `main.tsx`
+3. Restart Vite (`start.ps1`) — Tailwind must rebuild to pick up new token values
 
-`tailwind.config.js` reads `var(--app-*)` — no changes needed there when swapping palettes.
+`tailwind.config.js` reads `var(--app-*)` and `var(--btn-*)` / `var(--highlight-*)` — no changes needed there when swapping palettes.
 
-**Custom colour tokens** (resolved at runtime via CSS variables, declared in active palette file):
-- `app-bg` — page background (deep olive-black)
-- `app-surface` — card/panel background
-- `app-raised` — table headers, sub-panel backgrounds
-- `app-muted` — inputs, badges, lightest panels
-- `app-border` — borders
-- `app-text` — primary text
-- `app-secondary` — secondary/muted text
-- `app-dim` — very dim text (bullets, minor labels)
-- `app-accent` `#cc901f` — **section headings, accent text** (saturated amber gold; replaces blue-400 for earthy palette)
-- `blue-600` — primary action button
-- `blue-400` — active tab indicator, tooltip info icons, functional links
-- `green/yellow/red` — status (positive margin / warning / error)
-- `amber-400` — choked nozzle indicator
+### Design token groups (semantic layer)
+
+All UI element groups have a single token source. Change one variable in the palette file to restyle the entire group:
+
+| Group | Tokens | Elements |
+|---|---|---|
+| **Primary buttons** | `--btn-primary-bg/text/hover` | Calculate Performance, Generate Envelope, Go to Engine Design |
+| **Toggle/spool active** | `app-accent/20 + border-app-accent + text-app-accent` | Spool count buttons (selected state) |
+| **Toggle/spool hover** | `hover:border-app-accent hover:text-app-accent` | Spool count buttons (hover) |
+| **Active tab** | `border-app-accent text-app-accent` | Ribbon tab indicator |
+| **Input fields** | `bg-app-muted border-app-border focus:border-app-accent` | All number inputs, selects |
+| **Highlight/info** | `--highlight-bg/border/text` | Required Thrust MetricCard, envelope info banner |
+| **Section headings** | `text-app-accent` | All h2/h3 section titles |
+| **Status** | Tailwind `green/yellow/red-400` (not tokenized) | Thrust margin, TIT fraction, errors/warnings |
+| **Tooltip icons** | `text-blue-400` | Info (ℹ) icon next to field labels |
+
+**Base colour tokens** (declared in active palette file, variables stored as bare RGB channels):
+- `--app-bg` — page background
+- `--app-surface` — card/panel background
+- `--app-raised` — table headers, sub-panel backgrounds
+- `--app-muted` — inputs, badges
+- `--app-border` — borders
+- `--app-text` — primary text
+- `--app-secondary` — secondary/muted text
+- `--app-dim` — very dim text
+- `--app-accent` — accent (headings, active states, highlights)
 
 **Number inputs:** spin buttons suppressed globally. Do not add them back.
 

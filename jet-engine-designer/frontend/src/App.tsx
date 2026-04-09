@@ -174,7 +174,7 @@ export default function App() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors border-b-2 -mb-px ${
               activeTab === tab.id
-                ? 'bg-app-bg border-blue-500 text-blue-400'
+                ? 'bg-app-bg border-app-accent text-app-accent'
                 : 'border-transparent text-app-secondary hover:text-app-text hover:bg-app-muted/50'
             }`}
           >
@@ -240,7 +240,7 @@ export default function App() {
               <button
                 onClick={handleCalculate}
                 disabled={loadingCalc}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:bg-app-muted disabled:cursor-not-allowed text-app-text font-semibold px-10 py-3 rounded-xl text-sm transition-colors shadow-lg"
+                className="flex items-center gap-2 bg-app-accent hover:bg-blue-300 disabled:bg-app-muted disabled:cursor-not-allowed text-app-bg font-semibold px-10 py-3 rounded-xl text-sm transition-colors shadow-lg"
               >
                 {loadingCalc ? (
                   <><Loader size={16} className="animate-spin" /> Calculating…</>
@@ -273,7 +273,7 @@ export default function App() {
                 <p className="text-app-secondary text-sm mb-5">Configure the engine and click Calculate on the Engine Design tab.</p>
                 <button
                   onClick={() => setActiveTab('design')}
-                  className="bg-blue-600 hover:bg-blue-500 text-app-text px-6 py-2 rounded-lg text-sm"
+                  className="bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text px-6 py-2 rounded-lg text-sm"
                 >
                   Go to Engine Design
                 </button>

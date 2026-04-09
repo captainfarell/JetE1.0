@@ -13,6 +13,13 @@ export default {
         'app-secondary': 'rgb(var(--app-secondary) / <alpha-value>)',
         'app-dim':       'rgb(var(--app-dim) / <alpha-value>)',
         'app-accent':    'rgb(var(--app-accent) / <alpha-value>)',
+        // Semantic tokens
+        'btn-primary':       'rgb(var(--btn-primary-bg) / <alpha-value>)',
+        'btn-primary-text':  'rgb(var(--btn-primary-text) / <alpha-value>)',
+        'btn-primary-hover': 'rgb(var(--btn-primary-hover) / <alpha-value>)',
+        'highlight':         'rgb(var(--highlight-bg) / <alpha-value>)',
+        'highlight-border':  'rgb(var(--highlight-border) / <alpha-value>)',
+        'highlight-text':    'rgb(var(--highlight-text) / <alpha-value>)',
       },
     },
   },

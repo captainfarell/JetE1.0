@@ -117,7 +117,7 @@ function StepCard({ step }: { step: StepNode }) {
             <p className="text-[10px] font-semibold uppercase tracking-wider text-app-secondary mb-2">Equations</p>
             <div className="space-y-2">
               {step.equations.map((eq, i) => (
-                <div key={i} className="text-xs font-mono text-blue-300 bg-app-raised/60 rounded px-2 py-1.5 leading-relaxed flex items-center flex-wrap gap-x-0.5">
+                <div key={i} className="text-sm font-mono text-app-text bg-app-raised/60 rounded px-2 py-1.5 leading-relaxed flex items-center flex-wrap gap-x-0.5">
                   {eq}
                 </div>
               ))}

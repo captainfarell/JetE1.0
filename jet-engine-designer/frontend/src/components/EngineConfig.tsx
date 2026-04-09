@@ -82,7 +82,7 @@ function NumberInput({ value, onChange, min, max, step = 0.01, disabled, classNa
   return (
     <input
       type="number"
-      className={`w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 ${className}`}
+      className={`w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-app-accent focus:ring-1 focus:ring-app-accent disabled:opacity-50 ${className}`}
       value={value}
       min={min}
       max={max}
@@ -125,7 +125,7 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
           <div>
             <FieldLabel label="Engine Type" paramKey="engine_type" defaults={defaults} />
             <select
-              className="w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-app-muted border border-app-border text-app-text rounded-md px-3 py-2 text-sm focus:outline-none focus:border-app-accent"
               value={formData.engine_type}
               onChange={e => {
                 const t = e.target.value as 'turbojet' | 'turbofan';
@@ -153,10 +153,10 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
                     title={disabled ? 'No commercial production examples' : undefined}
                     className={`flex-1 py-2 rounded-md text-sm font-semibold border transition-colors ${
                       formData.num_spools === n && !disabled
-                        ? 'bg-blue-600 border-blue-500 text-app-text'
+                        ? 'bg-app-accent/20 border-app-accent text-app-accent'
                         : disabled
                         ? 'bg-app-surface border-app-border text-app-dim cursor-not-allowed'
-                        : 'bg-app-muted border-app-border text-app-text hover:border-blue-500'
+                        : 'bg-app-muted border-app-border text-app-text hover:border-app-accent hover:text-app-accent'
                     }`}
                   >
                     {n}

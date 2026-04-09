@@ -1,0 +1,31 @@
+/* ── Palette: Blueprint (classical engineering drawing) ───────────────────── */
+/* Aesthetic: Prussian/navy blueprint paper — dark blue ground, crisp white   */
+/* lines, technical drafting precision. Like a draftsman's ink-on-linen plan. */
+/* Variables stored as bare RGB channels so Tailwind opacity modifiers work.  */
+/* Usage in CSS: rgb(var(--app-bg) / 0.5)                                     */
+:root {
+  --app-bg:             10 22 40;       /* #0a1628 — deep Prussian blue, blueprint ground    */
+  --app-surface:        15 32 53;       /* #0f2035 — card/panel background, slightly lighter */
+  --app-raised:         26 48 80;       /* #1a3050 — table headers, sub-panel backgrounds    */
+  --app-muted:          30 58 95;       /* #1e3a5f — inputs, badges                          */
+  --app-border:         31 61 110;      /* #1f3d6e — subtle separator lines                  */
+  --app-text:           232 240 248;    /* #e8f0f8 — crisp cool white, primary text          */
+  --app-secondary:      122 155 191;    /* #7a9bbf — muted blue-grey, secondary text         */
+  --app-dim:            74 106 138;     /* #4a6a8a — dim blue-grey, bullets/minor labels     */
+  --app-accent:         79 195 247;     /* #4fc3f7 — light sky blue, section headings/accent */
+
+  /* ── Semantic tokens ──────────────────────────────────────────────────────── */
+
+  /* Buttons — primary (Calculate Performance, Generate Envelope, Go to Engine Design) */
+  --btn-primary-bg:      79 195 247;    /* #4fc3f7 = app-accent */
+  --btn-primary-text:    10 22 40;      /* #0a1628 = app-bg — dark label on light fill */
+  --btn-primary-hover:   176 224 230;   /* lighter sky blue */
+
+  /* Highlight / info panels (Required Thrust card, envelope info) */
+  --highlight-bg:        26 48 80;      /* #1a3050 = app-raised */
+  --highlight-border:    79 195 247;    /* app-accent */
+  --highlight-text:      79 195 247;    /* app-accent */
+
+  /* Input focus ring */
+  --input-focus-border:  79 195 247;    /* app-accent */
+}
