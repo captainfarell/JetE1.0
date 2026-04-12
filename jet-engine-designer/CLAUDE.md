@@ -165,9 +165,27 @@ Ideal gas γ=1.4, cp=1005 J/(kg·K) · Isentropic intake · No combustor pressur
 
 ---
 
-## Git / deployment
+## Deployment
 
+**Production stack:**
+- Backend → [Render](https://render.com) (Docker, free tier, spins down after 15 min inactivity)
+- Frontend → [Vercel](https://vercel.com) (static, auto-deploy on push)
+
+**Environment variables:**
+
+| Where | Variable | Value |
+|---|---|---|
+| Render | `ALLOWED_ORIGINS` | `https://your-app.vercel.app` |
+| Vercel | `VITE_API_URL` | `https://your-service.onrender.com/api` |
+
+`VITE_API_URL` is baked in at build time — after changing it in Vercel, redeploy with **build cache disabled**.
+
+**Auto-deploy:** every `git push origin master` triggers a rebuild on both platforms.
+
+**Local dev:**
+- `ALLOWED_ORIGINS` defaults to `*` when unset
+- `VITE_API_URL` defaults to `/api` (proxied by Vite to `localhost:8000`)
+
+**Other:**
 - `node_modules/` and `__pycache__/` are gitignored
-- Backend containerisable via `backend/Dockerfile`
 - Frontend builds to `frontend/dist/` with `npm run build`
-- Set `VITE_API_URL` env var to point frontend at a non-localhost backend

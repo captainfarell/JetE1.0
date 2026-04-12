@@ -66,7 +66,35 @@ npm run build
 # Output in frontend/dist/ — serve with any static host or the backend itself
 ```
 
-To serve the frontend from FastAPI, copy `dist/` to `backend/static/` and add a `StaticFiles` mount in `main.py`.
+---
+
+## Production Deployment
+
+The app is deployed on:
+- **Backend:** [Render](https://render.com) — Docker, free tier
+- **Frontend:** [Vercel](https://vercel.com) — static build, auto-deploy on push
+
+### Environment variables
+
+| Platform | Variable | Value |
+|---|---|---|
+| Render | `ALLOWED_ORIGINS` | Your Vercel app URL, e.g. `https://your-app.vercel.app` |
+| Vercel | `VITE_API_URL` | Your Render service URL, e.g. `https://your-service.onrender.com/api` |
+
+### Vercel settings
+
+- **Root directory:** `jet-engine-designer/frontend`
+- **Framework preset:** Vite
+- **Build command:** `vite build`
+- **Output directory:** `dist`
+
+### Render settings
+
+- **Root directory:** `jet-engine-designer/backend`
+- **Runtime:** Docker
+- **Port:** `8000`
+
+> **Note:** Render's free tier spins down after 15 minutes of inactivity. The first request after idle takes ~30–50s to wake up.
 
 ---
 
@@ -84,7 +112,10 @@ jet-engine-designer/
 │   │   │   └── outputs.py        ← Pydantic response models (EngineResults, PlotData, ...)
 │   │   ├── physics/
 │   │   │   ├── atmosphere.py     ← ISA standard atmosphere (troposphere + stratosphere)
-│   │   │   └── cycle.py          ← Brayton cycle calculations (all engine types and spools)
+│   │   │   ├── cycle.py          ← Thin re-export shim (do not add logic here)
+│   │   │   ├── cycle_core.py     ← Physical constants + compressor/turbine/nozzle functions
+│   │   │   ├── cycle_geometry.py ← _num_stages(), _estimate_geometry()
+│   │   │   └── cycle_engine.py   ← Spool splitting, calculate_engine(), calculate_envelope()
 │   │   └── main.py               ← FastAPI app, routes, CORS
 │   └── requirements.txt
 └── frontend/
@@ -125,23 +156,18 @@ jet-engine-designer/
 
 ### Where the physics code lives
 
-All thermodynamic calculations are in `backend/app/physics/cycle.py`.
+The physics is split across focused modules — never add logic to `cycle.py` (it is a re-export shim only).
 
-| Function | Purpose |
-|---|---|
-| `compressor_exit_temp(T_in, PR, eta_c)` | Adiabatic compressor temperature rise |
-| `turbine_exit_pressure(Tt_in, Tt_out, pt_in, eta_t)` | Turbine exit pressure from temperature drop |
-| `nozzle_exit(Tt, pt, p_amb, m_dot)` | Converging nozzle: choked or unchoked exit conditions |
-| `_num_stages(PR)` | Approximate axial compressor stage count (1.3 PR/stage) |
-| `calculate_engine(request)` | Full cycle: all engine types and spool counts |
-| `calculate_envelope(request)` | Speed and altitude sweeps using `calculate_engine` |
-| `_estimate_geometry(...)` | Inlet/fan diameter from flow area; component length estimates |
-
-The atmosphere model is in `backend/app/physics/atmosphere.py`:
-
-| Function | Purpose |
-|---|---|
-| `standard_atmosphere(altitude_m)` | ISA temperature, pressure, density at any altitude |
+| Module | Function | Purpose |
+|---|---|---|
+| `cycle_core` | `compressor_exit_temp(T_in, PR, eta_c)` | Adiabatic compressor temperature rise |
+| `cycle_core` | `turbine_exit_pressure(Tt_in, Tt_out, pt_in, eta_t)` | Turbine exit pressure from temperature drop |
+| `cycle_core` | `nozzle_exit(Tt, pt, p_amb, m_dot)` | Converging nozzle: choked or unchoked exit conditions |
+| `cycle_geometry` | `_num_stages(PR)` | Approximate axial compressor stage count (1.3 PR/stage) |
+| `cycle_geometry` | `_estimate_geometry(...)` | Inlet/fan diameter from flow area; component length estimates |
+| `cycle_engine` | `calculate_engine(request)` | Full Brayton cycle: all engine types and spool counts |
+| `cycle_engine` | `calculate_envelope(request)` | Speed and altitude sweeps using `calculate_engine` |
+| `atmosphere` | `standard_atmosphere(altitude_m)` | ISA temperature, pressure, density at any altitude |
 
 ### How to add or change parameters
 
