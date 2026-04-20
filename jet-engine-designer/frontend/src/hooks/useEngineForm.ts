@@ -29,22 +29,26 @@ const DEFAULT_FORM: CalculateRequest = {
   auto_size_mass_flow: true,
 };
 
+type StatusCallback = (msg: string | null) => void;
+
 interface UseEngineFormReturn {
   formData: CalculateRequest;
   defaults: DefaultsResponse | null;
   updateForm: (updates: Partial<CalculateRequest>, onArchitectureChange?: () => void) => void;
 }
 
-export function useEngineForm(): UseEngineFormReturn {
+export function useEngineForm(onWakeUpStatus?: StatusCallback): UseEngineFormReturn {
   const [formData, setFormData] = useState<CalculateRequest>(DEFAULT_FORM);
   const [defaults, setDefaults] = useState<DefaultsResponse | null>(null);
 
   useEffect(() => {
-    getDefaults()
+    getDefaults(onWakeUpStatus)
       .then(setDefaults)
       .catch(() => {
         // Silently ignore — defaults are optional for the UI to function
       });
+  // onWakeUpStatus is a stable setState reference — safe to omit from deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateForm = useCallback(

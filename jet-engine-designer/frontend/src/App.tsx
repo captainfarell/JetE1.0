@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Cpu, BookOpen, AlertTriangle, XCircle, Loader, Play, HelpCircle, GitBranch } from 'lucide-react';
+import { Cpu, BookOpen, AlertTriangle, XCircle, Loader, Play, HelpCircle, GitBranch, Clock } from 'lucide-react';
 
 import EngineConfig from './components/EngineConfig';
 import AircraftConfig from './components/AircraftConfig';
@@ -59,7 +59,8 @@ function ValidationPanel({ errors, warnings }: { errors: string[]; warnings: str
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const { formData, defaults, updateForm } = useEngineForm();
+  const [wakeUpMsg, setWakeUpMsg] = useState<string | null>(null);
+  const { formData, defaults, updateForm } = useEngineForm(setWakeUpMsg);
   const [results, setResults] = useState<EngineResults | null>(null);
   const [envelopeResults, setEnvelopeResults] = useState<EnvelopeResults | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('learn');
@@ -85,10 +86,11 @@ export default function App() {
   async function handleCalculate() {
     setLoadingCalc(true);
     setApiError(null);
+    setWakeUpMsg(null);
     setCalcErrors([]);
     setCalcWarnings([]);
     try {
-      const res = await calculateEngine(formData);
+      const res = await calculateEngine(formData, setWakeUpMsg);
       setCalcErrors(res.errors);
       setCalcWarnings(res.warnings);
       if (res.errors.length === 0) {
@@ -108,6 +110,7 @@ export default function App() {
   async function handleEnvelope(config: EnvelopeConfigData) {
     setLoadingEnvelope(true);
     setApiError(null);
+    setWakeUpMsg(null);
     try {
       const req: EnvelopeRequest = {
         design: formData,
@@ -120,7 +123,7 @@ export default function App() {
         altitude_steps:  config.altitudeSteps,
         speed_kmh:       config.speedKmh,
       };
-      const res = await calculateEnvelope(req);
+      const res = await calculateEnvelope(req, setWakeUpMsg);
       setEnvelopeResults(res);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : String(err));
@@ -156,6 +159,14 @@ export default function App() {
           </button>
         ))}
       </nav>
+
+      {/* ── Wake-up banner ── */}
+      {wakeUpMsg && (
+        <div className="bg-amber-900/40 border-b border-amber-700 px-4 py-2 flex items-center gap-3">
+          <Clock size={15} className="text-amber-400 shrink-0 animate-pulse" />
+          <span className="text-sm text-amber-300">{wakeUpMsg}</span>
+        </div>
+      )}
 
       {/* ── Global API error banner ── */}
       {apiError && (

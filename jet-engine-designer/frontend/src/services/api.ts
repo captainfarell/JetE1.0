@@ -31,31 +31,70 @@ function formatError(err: unknown): string {
   return 'Unknown error';
 }
 
-export async function calculateEngine(request: CalculateRequest): Promise<EngineResults> {
-  try {
-    const res = await client.post<EngineResults>('/calculate', request);
-    return res.data;
-  } catch (err) {
-    throw new Error(formatError(err));
+// ─── Wake-up retry ────────────────────────────────────────────────────────────
+// Render's free tier spins down after 15 min of inactivity. The first request
+// after idle gets a network error while the container boots (~30–50s).
+// This wrapper retries on network errors only (no response), reports elapsed
+// time via onStatus, and gives up after MAX_ATTEMPTS × INTERVAL_MS.
+
+const MAX_ATTEMPTS    = 10;
+const INTERVAL_MS     = 5_000;
+
+type StatusCallback = (msg: string | null) => void;
+
+async function retryOnWakeUp<T>(
+  fn: () => Promise<T>,
+  onStatus: StatusCallback,
+): Promise<T> {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const result = await fn();
+      if (attempt > 1) onStatus(null);
+      return result;
+    } catch (err) {
+      const isNetworkError = err instanceof AxiosError && !err.response;
+      if (!isNetworkError || attempt === MAX_ATTEMPTS) {
+        onStatus(null);
+        throw new Error(formatError(err));
+      }
+      const elapsed = attempt * INTERVAL_MS / 1000;
+      onStatus(`Backend is waking up… ${elapsed}s elapsed, retrying`);
+      await new Promise(resolve => setTimeout(resolve, INTERVAL_MS));
+    }
   }
+  // Unreachable — last iteration always throws above — but satisfies TypeScript.
+  throw new Error('Backend did not respond.');
 }
 
-export async function calculateEnvelope(request: EnvelopeRequest): Promise<EnvelopeResults> {
-  try {
-    const res = await client.post<EnvelopeResults>('/envelope', request);
-    return res.data;
-  } catch (err) {
-    throw new Error(formatError(err));
-  }
+// ─── API functions ────────────────────────────────────────────────────────────
+
+export async function calculateEngine(
+  request: CalculateRequest,
+  onStatus: StatusCallback = () => {},
+): Promise<EngineResults> {
+  return retryOnWakeUp(
+    () => client.post<EngineResults>('/calculate', request).then(r => r.data),
+    onStatus,
+  );
 }
 
-export async function getDefaults(): Promise<DefaultsResponse> {
-  try {
-    const res = await client.get<DefaultsResponse>('/defaults');
-    return res.data;
-  } catch (err) {
-    throw new Error(formatError(err));
-  }
+export async function calculateEnvelope(
+  request: EnvelopeRequest,
+  onStatus: StatusCallback = () => {},
+): Promise<EnvelopeResults> {
+  return retryOnWakeUp(
+    () => client.post<EnvelopeResults>('/envelope', request).then(r => r.data),
+    onStatus,
+  );
+}
+
+export async function getDefaults(
+  onStatus: StatusCallback = () => {},
+): Promise<DefaultsResponse> {
+  return retryOnWakeUp(
+    () => client.get<DefaultsResponse>('/defaults').then(r => r.data),
+    onStatus,
+  );
 }
 
 export async function healthCheck(): Promise<boolean> {
