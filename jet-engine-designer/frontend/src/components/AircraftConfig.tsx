@@ -8,11 +8,19 @@ interface Props {
   defaults: DefaultsResponse | null;
 }
 
-// ISA temperature at altitude (simplified for display)
+// ISA temperature at altitude
 function isaTemp(altM: number): number {
   const T0 = 288.15, L = 0.0065;
   if (altM <= 11000) return T0 - L * altM;
   return 216.65;
+}
+
+// ISA pressure at altitude (Pa) — matches atmosphere.py
+function isaPress(altM: number): number {
+  const P0 = 101325, T0 = 288.15, L = 0.0065, R = 287.058, g = 9.80665;
+  if (altM <= 11000) return P0 * Math.pow(1 - (L * altM) / T0, g / (R * L));
+  const P11 = P0 * Math.pow(1 - (L * 11000) / T0, g / (R * L));
+  return P11 * Math.exp(-g * (altM - 11000) / (R * 216.65));
 }
 
 export default function AircraftConfig({ formData, onChange, defaults }: Props) {
@@ -29,6 +37,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
   }, [formData]);
 
   const isaT = isaTemp(formData.cruise_altitude_m);
+  const isaP = isaPress(formData.cruise_altitude_m);
 
   return (
     <div>
@@ -114,7 +123,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
                 max={20000}
                 step={100}
               />
-              <span className="text-xs text-app-secondary whitespace-nowrap">ISA {isaT.toFixed(1)} K</span>
+              <span className="text-xs text-app-secondary whitespace-nowrap">ISA {isaT.toFixed(1)} K · {(isaP / 1000).toFixed(2)} kPa</span>
             </div>
           </div>
         </div>
@@ -145,7 +154,7 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             )}
           </div>
           {formData.ambient_temperature_override_k === null && (
-            <div className="text-xs text-app-secondary mt-1">Using ISA: {isaT.toFixed(1)} K</div>
+            <div className="text-xs text-app-secondary mt-1">Using ISA: {isaT.toFixed(1)} K · {(isaP / 1000).toFixed(2)} kPa</div>
           )}
         </div>
       </div>
