@@ -143,7 +143,7 @@ export default function HelpSection() {
             },
             {
               term: 'TSFC (Thrust-Specific Fuel Consumption)',
-              def: 'Fuel mass burned per unit of thrust per unit time [kg/(N·s) or kg/(N·h)]. Lower TSFC means better fuel efficiency. Modern high-BPR turbofans achieve TSFC around 1.5×10⁻⁵ kg/(N·s); turbojets of the 1950s were above 3×10⁻⁵ kg/(N·s).',
+              def: 'Fuel mass burned per unit of thrust per unit time [mg/(N·s) or kg/(N·h)]. Lower TSFC means better fuel efficiency. Modern high-BPR turbofans achieve TSFC around 15 mg/(N·s); turbojets of the 1950s were above 30 mg/(N·s).',
             },
             {
               term: 'Propulsive Efficiency (ηₚ)',

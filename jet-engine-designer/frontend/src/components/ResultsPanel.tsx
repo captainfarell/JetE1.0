@@ -115,7 +115,7 @@ export default function ResultsPanel({ results }: Props) {
           />
           <MetricCard
             label="TSFC"
-            value={`${(results.tsfc_kg_n_h / 3600).toExponential(3)} kg/(N·s)`}
+            value={`${(results.tsfc_kg_n_h * (1e6 / 3600)).toFixed(3)} mg/(N·s)`}
             sub={`${results.tsfc_kg_n_h.toFixed(5)} kg/(N·h)`}
           />
           <MetricCard

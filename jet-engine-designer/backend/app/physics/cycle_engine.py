@@ -666,7 +666,7 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
         else:
             thrust_speed.append(res.net_thrust_n)
             thrust_req_speed.append(res.thrust_required_n)
-            tsfc_speed.append(res.tsfc_kg_n_h / 3600)   # convert kg/(N·h) → kg/(N·s)
+            tsfc_speed.append(res.tsfc_kg_n_h * (1e6 / 3600))   # convert kg/(N·h) → mg/(N·s)
             tit_frac_speed.append(res.tit_fraction * 100.0)
 
     # Thrust Required only varies with speed when wing_area is set (dynamic pressure method).
@@ -691,7 +691,7 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
         x_label="Speed",
         x_unit="km/h",
         series=[
-            PlotSeries(name="TSFC", y_values=tsfc_speed, y_label="TSFC", y_unit="kg/(N·s)", is_limit_line=False),
+            PlotSeries(name="TSFC", y_values=tsfc_speed, y_label="TSFC", y_unit="mg/(N·s)", is_limit_line=False),
         ],
     )
 
@@ -722,7 +722,7 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
             tsfc_alt.append(None)
         else:
             thrust_alt.append(res.net_thrust_n)
-            tsfc_alt.append(res.tsfc_kg_n_h / 3600)   # convert kg/(N·h) → kg/(N·s)
+            tsfc_alt.append(res.tsfc_kg_n_h * (1e6 / 3600))   # convert kg/(N·h) → mg/(N·s)
 
     thrust_vs_altitude = PlotData(
         x_values=altitudes,
@@ -738,7 +738,7 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
         x_label="Altitude",
         x_unit="m",
         series=[
-            PlotSeries(name="TSFC", y_values=tsfc_alt, y_label="TSFC", y_unit="kg/(N·s)", is_limit_line=False),
+            PlotSeries(name="TSFC", y_values=tsfc_alt, y_label="TSFC", y_unit="mg/(N·s)", is_limit_line=False),
         ],
     )
 
