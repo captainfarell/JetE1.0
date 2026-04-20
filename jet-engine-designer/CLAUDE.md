@@ -130,7 +130,7 @@ Turbine:    pt_out = pt_in·[1−(Tt_in−Tt_out)/(η_t·Tt_in)]^(γ/(γ-1))
 Nozzle:     critical PR = ((γ+1)/2)^(γ/(γ-1)) ≈ 1.893
 ```
 
-**TSFC display:** API returns `tsfc_kg_n_h` [kg/(N·h)]. Display as mg/(N·s): multiply by `1e6 / 3600`.
+**TSFC display:** API returns `tsfc_kg_n_h` [kg/(N·h)]. Display as kg/(N·s): divide by `3600`. Shown with `toExponential(3)` (e.g. `1.500e-5 kg/(N·s)`).
 **tit_fraction:** `Tt3 / TIT_max` — fraction of TIT consumed by compression (not material utilisation).
 **Station numbering (ARP755):** 0 → 2 → 21 → 25 → 3 → 4 → 45 → 5 → 55 → 9 → 19
 
