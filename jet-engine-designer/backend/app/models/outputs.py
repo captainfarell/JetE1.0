@@ -104,7 +104,9 @@ class EngineResults(BaseModel):
 
     # ── Limits & Efficiency ──────────────────────────────────────────────────
     tit_fraction: float          # Tt3 / TIT_max — fraction of TIT already consumed by compression
-    propulsive_efficiency: float
+    propulsive_efficiency: float # η_p = 2·V0 / (Vj_avg + V0)
+    thermal_efficiency: float    # η_th = η_overall / η_p
+    overall_efficiency: float    # η_overall = F·V0 / (ṁ_f · LHV)  [0 when static]
 
     # ── Diagnostics ──────────────────────────────────────────────────────────
     errors: list[str]

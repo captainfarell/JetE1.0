@@ -96,6 +96,8 @@ export interface EngineResults {
   compressor_stages: Record<string, number>;
   tit_fraction: number;
   propulsive_efficiency: number;
+  thermal_efficiency: number;
+  overall_efficiency: number;
   errors: string[];
   warnings: string[];
   assumptions: string[];

@@ -243,6 +243,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
             stations=stations_empty, geometry=geo_empty,
             compressor_stages={},
             tit_fraction=0.0, propulsive_efficiency=0.0,
+            thermal_efficiency=0.0, overall_efficiency=0.0,
             errors=errors, warnings=warnings, assumptions=assumptions,
         )
 
@@ -493,6 +494,12 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
 
     prop_eff = (2.0 * V0 / (Vj_avg + V0)) if (Vj_avg + V0) > 0 else 0.0
 
+    # ── Overall & Thermal Efficiency ──────────────────────────────────────────
+    # η_overall = F·V0 / (ṁ_f·LHV)  — zero at static (V0=0) by definition
+    # η_thermal = η_overall / η_p    — heat-to-mechanical conversion efficiency
+    overall_eff = (net_thrust * V0) / (fuel_flow * LHV_JET_A) if (fuel_flow > 0 and V0 > 0) else 0.0
+    thermal_eff = overall_eff / prop_eff if prop_eff > 0 else 0.0
+
     # ── TIT Utilisation ────────────────────────────────────────────────────────
     # tit_fraction = Tt4 / TIT_max = 1.0 at design point (we always run at max TIT).
     # For the envelope, report Tt3/Tt4: the fraction of TIT already "used" by compression.
@@ -617,6 +624,8 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         compressor_stages=compressor_stages,
         tit_fraction=round(tit_fraction, 4),
         propulsive_efficiency=round(prop_eff, 4),
+        thermal_efficiency=round(thermal_eff, 4),
+        overall_efficiency=round(overall_eff, 4),
         errors=errors,
         warnings=warnings,
         assumptions=assumptions,

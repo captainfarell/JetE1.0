@@ -60,10 +60,6 @@ export default function ResultsPanel({ results }: Props) {
   const s = results.stations;
   const g = results.geometry;
 
-  const thrustMarginColor =
-    results.thrust_margin_n > 0 ? 'green' :
-    results.thrust_margin_n < 0 ? 'red' : 'default';
-
   const titPct = (results.tit_fraction * 100).toFixed(1);
   const titBarColor = results.tit_fraction > 0.95 ? 'bg-red-500' :
                       results.tit_fraction > 0.80 ? 'bg-yellow-500' : 'bg-green-500';
@@ -108,10 +104,9 @@ export default function ResultsPanel({ results }: Props) {
             color="highlight"
           />
           <MetricCard
-            label="Thrust Margin"
-            value={`${(results.thrust_margin_n / 1000).toFixed(2)} kN`}
-            color={thrustMarginColor}
-            sub={results.thrust_margin_n >= 0 ? 'Sufficient thrust' : 'Thrust deficit!'}
+            label="Overall Efficiency"
+            value={results.overall_efficiency > 0 ? `${(results.overall_efficiency * 100).toFixed(1)}%` : '— (static)'}
+            sub={`η_th = ${(results.thermal_efficiency * 100).toFixed(1)}%`}
           />
           <MetricCard
             label="TSFC"
@@ -126,7 +121,7 @@ export default function ResultsPanel({ results }: Props) {
           <MetricCard
             label="Propulsive Efficiency"
             value={`${(results.propulsive_efficiency * 100).toFixed(1)}%`}
-            sub="η_p = 2V₀/(Vⱼ + V₀)"
+            sub={`η_p · η_th = ${(results.overall_efficiency * 100).toFixed(1)}%`}
           />
         </div>
         <div className="grid grid-cols-2 gap-2 mt-2">
