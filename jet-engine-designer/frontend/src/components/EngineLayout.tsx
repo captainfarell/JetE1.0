@@ -110,17 +110,6 @@ export default function EngineLayout({ engine_type, num_spools }: Props) {
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
-        {sections.map(section => {
-          const style = SECTION_STYLE[section] ?? DEFAULT_STYLE;
-          return (
-            <div key={section} className="flex items-center gap-1.5 text-xs text-app-secondary">
-              <span className={`w-3 h-3 rounded-sm inline-block border ${style.bg} ${style.border}`} />
-              {section}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

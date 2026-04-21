@@ -5,7 +5,7 @@ import type { CalculateRequest, DefaultsResponse } from '../types/engine';
 const DEFAULT_FORM: CalculateRequest = {
   engine_type: 'turbofan',
   num_spools: 2,
-  bypass_ratio: 3.0,
+  bypass_ratio: 2.0,
   fan_pressure_ratio: 1.6,
   fan_efficiency: 0.88,
   overall_pressure_ratio: 10.0,

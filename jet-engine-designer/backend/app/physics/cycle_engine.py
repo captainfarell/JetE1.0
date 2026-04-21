@@ -120,6 +120,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     """
     errors:      list[str] = []
     warnings:    list[str] = []
+    t = request.throttle_fraction
     assumptions: list[str] = [
         "Ideal gas with γ = 1.4, cp = 1005 J/(kg·K) throughout",
         "Isentropic intake (no pressure loss)",
@@ -173,7 +174,6 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     # OPR and TIT both scale with throttle so the compressor backs off in
     # proportion to the reduction in fuel flow, mirroring real-engine behaviour.
     # FPR scales the same way for turbofans.
-    t   = request.throttle_fraction
     TIT = t * request.tit_max_k
     OPR = 1.0 + (request.overall_pressure_ratio - 1.0) * t
     FPR = (1.0 + (request.fan_pressure_ratio - 1.0) * t) if eng == "turbofan" else 1.0
@@ -687,6 +687,9 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
             "cruise_speed_kmh": spd,
             "cruise_altitude_m": request.altitude_m,
             "core_mass_flow_kg_s": m_core_scaled,
+            "auto_size_mass_flow": False,
+            "compute_thrust_from_drag": False,
+            "target_thrust_n": None,
         })
         res = calculate_engine(req)
         if res.errors:
@@ -742,6 +745,9 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
             "cruise_altitude_m": alt,
             "cruise_speed_kmh": request.speed_kmh,
             "core_mass_flow_kg_s": m_core_scaled,
+            "auto_size_mass_flow": False,
+            "compute_thrust_from_drag": False,
+            "target_thrust_n": None,
         })
         res = calculate_engine(req)
         if res.errors:

@@ -319,7 +319,7 @@ export default function App() {
                     <h2 className="text-sm font-bold uppercase tracking-wider text-app-accent mb-4 pb-2 border-b border-app-border">
                       Performance Plots
                     </h2>
-                    <PlotsPanel results={envelopeResults} designSpeed={formData.cruise_speed_kmh} designAltitude={formData.cruise_altitude_m} />
+                    <PlotsPanel results={envelopeResults} designSpeed={formData.cruise_speed_kmh} designAltitude={formData.cruise_altitude_m} designThrottle={formData.throttle_fraction * 100} />
                   </div>
                 )}
               </div>

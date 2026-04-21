@@ -9,6 +9,7 @@ interface Props {
   results: EnvelopeResults;
   designSpeed: number;
   designAltitude: number;
+  designThrottle: number;
 }
 
 const SERIES_COLORS = [
@@ -187,7 +188,7 @@ function SinglePlot({ plot, title, designX }: SinglePlotProps) {
   );
 }
 
-export default function PlotsPanel({ results, designSpeed, designAltitude }: Props) {
+export default function PlotsPanel({ results, designSpeed, designAltitude, designThrottle }: Props) {
   return (
     <div className="space-y-4">
       <div className="text-xs text-app-secondary bg-app-muted/30 rounded-md p-2 mb-2">
@@ -197,11 +198,10 @@ export default function PlotsPanel({ results, designSpeed, designAltitude }: Pro
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <SinglePlot plot={results.thrust_vs_speed}        title="Thrust vs Speed"              designX={designSpeed} />
         <SinglePlot plot={results.tsfc_vs_speed}          title="TSFC vs Speed"                designX={designSpeed} />
-        <SinglePlot plot={results.tit_fraction_vs_speed}  title="TIT Utilisation vs Speed (%)" designX={designSpeed} />
-        <SinglePlot plot={results.thrust_vs_altitude}     title="Thrust vs Altitude"           designX={designAltitude} />
+<SinglePlot plot={results.thrust_vs_altitude}     title="Thrust vs Altitude"           designX={designAltitude} />
         <SinglePlot plot={results.tsfc_vs_altitude}       title="TSFC vs Altitude"             designX={designAltitude} />
-        <SinglePlot plot={results.thrust_vs_throttle}     title="Thrust vs Throttle" />
-        <SinglePlot plot={results.tsfc_vs_throttle}       title="TSFC vs Throttle" />
+        <SinglePlot plot={results.thrust_vs_throttle}     title="Thrust vs Throttle"   designX={designThrottle} />
+        <SinglePlot plot={results.tsfc_vs_throttle}       title="TSFC vs Throttle"     designX={designThrottle} />
       </div>
     </div>
   );

@@ -245,7 +245,7 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
           <div className="flex items-center gap-3">
             <input
               type="range"
-              min={0.1}
+              min={0.5}
               max={1.0}
               step={0.01}
               value={formData.throttle_fraction}

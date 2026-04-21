@@ -61,7 +61,7 @@ jet-engine-designer/
 | `cycle_geometry` | `_num_stages(PR)` | Axial compressor stages (1.3 PR/stage) |
 | `cycle_geometry` | `_estimate_geometry(...)` | Returns GeometryData |
 | `cycle_engine` | `calculate_engine(request)` | Full Brayton cycle → EngineResults |
-| `cycle_engine` | `calculate_envelope(request)` | Speed + altitude + throttle sweeps → EnvelopeResults. Mass flow scaled by intake stagnation density ratio relative to design point so thrust vs altitude/speed responds to air density changes. |
+| `cycle_engine` | `calculate_envelope(request)` | Speed + altitude + throttle sweeps → EnvelopeResults. Mass flow scaled by intake stagnation density ratio relative to design point. Speed/altitude sweep calls pass `auto_size_mass_flow=False` so plots show available thrust, not required thrust. |
 
 **Constants:** γ = 1.4, cp = 1005 J/(kg·K), R = 287.058 J/(kg·K), LHV (Jet-A) = 43.2 MJ/kg, axial PR/stage = 1.3
 
@@ -112,9 +112,15 @@ Tab order: 'learn' (default) → 'design' → 'results' → 'envelope' → 'work
 
 ## Key component behaviours
 
-**EngineConfig:** 1-spool disabled for turbofan; 3-spool disabled for turbojet. Auto-resets spool on type switch. Spool PR manual override shown when `num_spools >= 2` and `autoSplit === false`. Material TIT buttons set `tit_max_k` to midpoint. `auto_size_mass_flow` checkbox scales core mass flow to match thrust requirement at calculation time.
+**EngineConfig:** 1-spool disabled for turbofan; 3-spool disabled for turbojet. Auto-resets spool on type switch. Spool PR manual override shown when `num_spools >= 2` and `autoSplit === false`. Material TIT buttons set `tit_max_k` to midpoint. `auto_size_mass_flow` checkbox scales core mass flow to match thrust requirement at calculation time. Operating throttle slider is clamped to **50–100%** (min=0.5).
+
+**EngineLayout:** Engine section flow diagram (coloured blocks + arrows). Redundant colour-swatch legend below the blocks was removed — the blocks are self-labelled.
 
 **ResultsPanel order:** Errors/Warnings → Performance Summary → Estimated Geometry → Compressor Stage Counts → Combustion Headroom → Station States → Nozzle Exit → Model Assumptions (collapsible) → Literature & References (collapsible)
+
+**WorkflowSection:** Collapsible step cards (01–08), each with Inputs / Equations / Outputs columns in a `1fr 2.5fr 1fr` grid. Equations column is wide enough to prevent line-wrapping; uses `overflow-x-auto` + `whitespace-nowrap` as fallback. Each equation has a label and a "Where" symbol glossary below it. Global expand/collapse button in header. Collapsible Constants & Assumptions panel at the bottom.
+
+**PlotsPanel:** `SinglePlot` accepts `designX` prop to render a white design-point dot. Throttle plots now receive `designThrottle = throttle_fraction × 100` from `App.tsx`. TIT Utilisation vs Speed plot was removed.
 
 **HelpSection order:** How Does a Jet Engine Work? → Brayton Cycle (4-card) → Turbofan vs Turbojet → Key Parameters → Further Reading (free resources / textbooks / standards)
 

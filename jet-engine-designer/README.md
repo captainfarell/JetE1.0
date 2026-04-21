@@ -144,9 +144,9 @@ jet-engine-designer/
 - **Turbojet and Turbofan** architectures, 1–3 spools (invalid combos disabled with explanations)
 - **Brayton cycle thermodynamics** — full station-by-station calculation per ARP755 numbering
 - **Compressor stage count** estimate per spool (axial, ~1.3 PR/stage)
-- **Performance envelope** sweeps — thrust, TSFC, TIT fraction vs speed and altitude
+- **Performance envelope** sweeps — thrust and TSFC vs speed, altitude, and throttle (50–100%); design-point dot on all plots
 - **ISA atmosphere model** — troposphere + stratosphere, with deviation (ISA+ΔT) support
-- **Workflow tab** — step-by-step equations rendered with stacked fractions, subscripts, and Greek letters
+- **Workflow tab** — collapsible step cards with equations, per-symbol glossary, and a constants/assumptions reference panel
 - **Learn tab** — Brayton cycle explainer, ISA description, key parameters, further reading
 - **Earthy colour theme** — palette-3125 (olive-black / amber gold accent)
 
@@ -166,7 +166,7 @@ The physics is split across focused modules — never add logic to `cycle.py` (i
 | `cycle_geometry` | `_num_stages(PR)` | Approximate axial compressor stage count (1.3 PR/stage) |
 | `cycle_geometry` | `_estimate_geometry(...)` | Inlet/fan diameter from flow area; component length estimates |
 | `cycle_engine` | `calculate_engine(request)` | Full Brayton cycle: all engine types and spool counts |
-| `cycle_engine` | `calculate_envelope(request)` | Speed and altitude sweeps using `calculate_engine` |
+| `cycle_engine` | `calculate_envelope(request)` | Speed, altitude, and throttle sweeps. Speed/altitude calls override `auto_size_mass_flow=False` so plots show available thrust (not drag-matched thrust). |
 | `atmosphere` | `standard_atmosphere(altitude_m)` | ISA temperature, pressure, density at any altitude |
 
 ### How to add or change parameters
