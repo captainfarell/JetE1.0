@@ -122,6 +122,11 @@ export default function App() {
         altitude_max_m:  config.altitudeMaxM,
         altitude_steps:  config.altitudeSteps,
         speed_kmh:       config.speedKmh,
+        throttle_min:        config.throttleMin / 100,
+        throttle_max:        config.throttleMax / 100,
+        throttle_steps:      config.throttleSteps,
+        throttle_altitude_m: config.throttleAltitudeM,
+        throttle_speed_kmh:  config.throttleSpeedKmh,
       };
       const res = await calculateEnvelope(req, setWakeUpMsg);
       setEnvelopeResults(res);
@@ -314,7 +319,7 @@ export default function App() {
                     <h2 className="text-sm font-bold uppercase tracking-wider text-app-accent mb-4 pb-2 border-b border-app-border">
                       Performance Plots
                     </h2>
-                    <PlotsPanel results={envelopeResults} />
+                    <PlotsPanel results={envelopeResults} designSpeed={formData.cruise_speed_kmh} designAltitude={formData.cruise_altitude_m} />
                   </div>
                 )}
               </div>

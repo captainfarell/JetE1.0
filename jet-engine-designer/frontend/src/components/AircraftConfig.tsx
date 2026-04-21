@@ -56,18 +56,6 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
             />
           </div>
           <div>
-            <FieldLabel label="Wing Area [m²]" tooltip="Optional. If provided, enables dynamic-pressure-based drag calculation." />
-            <NumberInput
-              value={formData.wing_area_m2 ?? ''}
-              onChange={v => {
-                const n = parseFloat(v);
-                onChange({ wing_area_m2: isNaN(n) || v === '' ? null : n });
-              }}
-              min={1}
-              step={1}
-            />
-          </div>
-          <div>
             <FieldLabel label="CL cruise" paramKey="cl_cruise" defaults={defaults} />
             <NumberInput
               value={formData.cl_cruise}

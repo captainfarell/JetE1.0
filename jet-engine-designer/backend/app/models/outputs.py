@@ -92,6 +92,7 @@ class EngineResults(BaseModel):
 
     core_mass_flow_kg_s: float
     bypass_mass_flow_kg_s: float
+    operating_throttle: float  # echoed from request.throttle_fraction
 
     # ── Cycle States ─────────────────────────────────────────────────────────
     stations: StationData
@@ -143,6 +144,8 @@ class EnvelopeResults(BaseModel):
     tit_fraction_vs_speed: PlotData
     thrust_vs_altitude: PlotData
     tsfc_vs_altitude: PlotData
+    thrust_vs_throttle: PlotData
+    tsfc_vs_throttle: PlotData
 
 
 # ─── Defaults Response ───────────────────────────────────────────────────────

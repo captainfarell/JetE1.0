@@ -88,6 +88,11 @@ export default function ResultsPanel({ results }: Props) {
         </div>
       )}
 
+      {/* Throttle note */}
+      <p className="text-xs text-app-secondary bg-app-muted/30 rounded-md px-3 py-2">
+        All values at <strong className="text-app-text">{(results.operating_throttle * 100).toFixed(0)}% throttle</strong> — TIT&nbsp;=&nbsp;{results.stations.tt4_k.toFixed(0)}&nbsp;K. Adjust throttle in the Design tab; use the <em>Envelope</em> tab to explore the full range.
+      </p>
+
       {/* Performance Summary */}
       <div>
         <h3 className="text-xs font-bold uppercase tracking-wider text-app-accent mb-3">Performance Summary</h3>
@@ -104,9 +109,9 @@ export default function ResultsPanel({ results }: Props) {
             color="highlight"
           />
           <MetricCard
-            label="Overall Efficiency"
-            value={results.overall_efficiency > 0 ? `${(results.overall_efficiency * 100).toFixed(1)}%` : '— (static)'}
-            sub={`η_th = ${(results.thermal_efficiency * 100).toFixed(1)}%`}
+            label="Fuel Flow"
+            value={`${results.fuel_flow_kg_h.toFixed(2)} kg/h`}
+            sub={`${results.fuel_flow_kg_s.toFixed(4)} kg/s`}
           />
           <MetricCard
             label="TSFC"
@@ -114,14 +119,14 @@ export default function ResultsPanel({ results }: Props) {
             sub={`${results.tsfc_kg_n_h.toFixed(5)} kg/(N·h)`}
           />
           <MetricCard
-            label="Fuel Flow"
-            value={`${results.fuel_flow_kg_h.toFixed(2)} kg/h`}
-            sub={`${results.fuel_flow_kg_s.toFixed(4)} kg/s`}
-          />
-          <MetricCard
             label="Propulsive Efficiency"
             value={`${(results.propulsive_efficiency * 100).toFixed(1)}%`}
             sub={`η_p · η_th = ${(results.overall_efficiency * 100).toFixed(1)}%`}
+          />
+          <MetricCard
+            label="Overall Efficiency"
+            value={results.overall_efficiency > 0 ? `${(results.overall_efficiency * 100).toFixed(1)}%` : '— (static)'}
+            sub={`η_th = ${(results.thermal_efficiency * 100).toFixed(1)}%`}
           />
         </div>
         <div className="grid grid-cols-2 gap-2 mt-2">

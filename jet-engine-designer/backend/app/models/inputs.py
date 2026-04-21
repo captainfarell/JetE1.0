@@ -64,7 +64,13 @@ class CalculateRequest(BaseModel):
     tit_max_k: float = Field(
         1400.0,
         gt=0.0,
-        description="Maximum turbine inlet temperature [K]",
+        description="Maximum turbine inlet temperature [K] — material/design limit",
+    )
+    throttle_fraction: float = Field(
+        0.8,
+        gt=0.0,
+        le=1.0,
+        description="Operating throttle as a fraction of max TIT and (OPR-1). 1.0 = max thrust, 0.8 = typical cruise.",
     )
     eta_compressor: float = Field(
         0.85,
@@ -101,10 +107,6 @@ class CalculateRequest(BaseModel):
         5000.0,
         gt=0.0,
         description="Aircraft total mass [kg]",
-    )
-    wing_area_m2: Optional[float] = Field(
-        None,
-        description="Wing reference area [m²] (optional; enables dynamic pressure drag calc)",
     )
     cl_cruise: float = Field(
         0.4,
@@ -196,4 +198,34 @@ class EnvelopeRequest(BaseModel):
         500.0,
         gt=0.0,
         description="Fixed speed for altitude sweep [km/h]",
+    )
+
+    # ── Throttle Sweep ───────────────────────────────────────────────────────────
+    throttle_min: float = Field(
+        0.5,
+        ge=0.1,
+        le=1.0,
+        description="Minimum throttle fraction for sweep (0.1 = 10% of TIT_max, 1.0 = full throttle)",
+    )
+    throttle_max: float = Field(
+        1.0,
+        ge=0.1,
+        le=1.0,
+        description="Maximum throttle fraction for sweep",
+    )
+    throttle_steps: int = Field(
+        20,
+        ge=5,
+        le=100,
+        description="Number of throttle points in sweep",
+    )
+    throttle_altitude_m: float = Field(
+        10000.0,
+        ge=0.0,
+        description="Fixed altitude for throttle sweep [m]",
+    )
+    throttle_speed_kmh: float = Field(
+        500.0,
+        gt=0.0,
+        description="Fixed speed for throttle sweep [km/h]",
     )

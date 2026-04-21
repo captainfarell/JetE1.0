@@ -11,12 +11,12 @@ export interface CalculateRequest {
   ip_pressure_ratio: number | null;
   hp_pressure_ratio: number | null;
   tit_max_k: number;
+  throttle_fraction: number;
   eta_compressor: number;
   eta_turbine: number;
   eta_combustor: number;
   core_mass_flow_kg_s: number;
   aircraft_mass_kg: number;
-  wing_area_m2: number | null;
   cl_cruise: number;
   cd_cruise: number;
   cruise_speed_kmh: number;
@@ -37,6 +37,11 @@ export interface EnvelopeRequest {
   altitude_max_m: number;
   altitude_steps: number;
   speed_kmh: number;
+  throttle_min: number;
+  throttle_max: number;
+  throttle_steps: number;
+  throttle_altitude_m: number;
+  throttle_speed_kmh: number;
 }
 
 // ─── Response Types ───────────────────────────────────────────────────────────
@@ -91,6 +96,7 @@ export interface EngineResults {
   tsfc_kg_n_h: number;
   core_mass_flow_kg_s: number;
   bypass_mass_flow_kg_s: number;
+  operating_throttle: number;
   stations: StationData;
   geometry: GeometryData;
   compressor_stages: Record<string, number>;
@@ -124,6 +130,8 @@ export interface EnvelopeResults {
   tit_fraction_vs_speed: PlotData;
   thrust_vs_altitude: PlotData;
   tsfc_vs_altitude: PlotData;
+  thrust_vs_throttle: PlotData;
+  tsfc_vs_throttle: PlotData;
 }
 
 // ─── Defaults ────────────────────────────────────────────────────────────────

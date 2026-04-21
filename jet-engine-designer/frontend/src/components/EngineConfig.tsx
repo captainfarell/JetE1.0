@@ -238,6 +238,29 @@ export default function EngineConfig({ formData, onChange, defaults }: Props) {
             {defaults?.material_tit_ranges.find(m => formData.tit_max_k >= m.t_min_k && formData.tit_max_k <= m.t_max_k)?.label ?? ''}
           </div>
         </div>
+
+        {/* Throttle */}
+        <div className="mt-4">
+          <FieldLabel label="Operating Throttle" tooltip="Fraction of max TIT and (OPR−1) used for this calculation. 1.0 = max thrust / takeoff, 0.8 = typical cruise." />
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min={0.1}
+              max={1.0}
+              step={0.01}
+              value={formData.throttle_fraction}
+              onChange={e => onChange({ throttle_fraction: parseFloat(e.target.value) })}
+              className="flex-1 accent-app-accent"
+            />
+            <span className="text-sm font-bold text-app-text w-12 text-right">
+              {(formData.throttle_fraction * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div className="text-xs text-app-secondary mt-1">
+            TIT&nbsp;=&nbsp;{(formData.throttle_fraction * formData.tit_max_k).toFixed(0)}&nbsp;K
+            &nbsp;·&nbsp;Eff. OPR&nbsp;=&nbsp;{(1 + (formData.overall_pressure_ratio - 1) * formData.throttle_fraction).toFixed(1)}
+          </div>
+        </div>
       </div>
 
       {/* Flow & Size */}

@@ -61,7 +61,7 @@ jet-engine-designer/
 | `cycle_geometry` | `_num_stages(PR)` | Axial compressor stages (1.3 PR/stage) |
 | `cycle_geometry` | `_estimate_geometry(...)` | Returns GeometryData |
 | `cycle_engine` | `calculate_engine(request)` | Full Brayton cycle → EngineResults |
-| `cycle_engine` | `calculate_envelope(request)` | Speed + altitude sweeps → EnvelopeResults |
+| `cycle_engine` | `calculate_envelope(request)` | Speed + altitude + throttle sweeps → EnvelopeResults. Mass flow scaled by intake stagnation density ratio relative to design point so thrust vs altitude/speed responds to air density changes. |
 
 **Constants:** γ = 1.4, cp = 1005 J/(kg·K), R = 287.058 J/(kg·K), LHV (Jet-A) = 43.2 MJ/kg, axial PR/stage = 1.3
 

@@ -86,6 +86,7 @@ export default function HelpSection() {
                 ['Specific thrust (thrust/airflow)', 'Lower', 'Higher'],
                 ['Noise level', 'Quiet (low Vⱼ)', 'Loud (high Vⱼ)'],
                 ['Bypass ratio', '3–12+ (commercial)', '0'],
+                ['Number of spools', '2–3 (1-spool not used in practice)', '1–2'],
                 ['Best application', 'Subsonic airliners, business jets', 'Supersonic fighters, some missiles'],
                 ['Examples', 'CFM56, Trent 1000, GE90', 'J57, Olympus, J85'],
               ].map(([aspect, fan, jet], i) => (

@@ -18,6 +18,11 @@ export interface EnvelopeConfig {
   altitudeMaxM: number;
   altitudeSteps: number;
   speedKmh: number;
+  throttleMin: number;
+  throttleMax: number;
+  throttleSteps: number;
+  throttleAltitudeM: number;
+  throttleSpeedKmh: number;
 }
 
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -57,6 +62,11 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
     altitudeMaxM: 12000,
     altitudeSteps: 30,
     speedKmh: formData.cruise_speed_kmh,
+    throttleMin: 50,
+    throttleMax: 100,
+    throttleSteps: 20,
+    throttleAltitudeM: formData.cruise_altitude_m,
+    throttleSpeedKmh: formData.cruise_speed_kmh,
   });
 
   // Sync defaults when formData changes
@@ -65,6 +75,8 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
       ...prev,
       altitudeM: formData.cruise_altitude_m,
       speedKmh: formData.cruise_speed_kmh,
+      throttleAltitudeM: formData.cruise_altitude_m,
+      throttleSpeedKmh: formData.cruise_speed_kmh,
     }));
   }, [formData.cruise_altitude_m, formData.cruise_speed_kmh]);
 
@@ -72,7 +84,7 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
     setConfig(prev => ({ ...prev, ...updates }));
   }
 
-  const estimatedPoints = config.speedSteps + config.altitudeSteps;
+  const estimatedPoints = config.speedSteps + config.altitudeSteps + config.throttleSteps;
 
   return (
     <div>
@@ -122,6 +134,30 @@ export default function EnvelopeConfig({ formData, loading, onGenerate }: Props)
           </FieldRow>
         </div>
         <div className="text-xs text-app-secondary mt-1 ml-[45%]">Cruise speed: {formData.cruise_speed_kmh} km/h</div>
+      </Section>
+
+      <Section
+        title="Throttle Sweep"
+        subtitle="Vary TIT fraction at fixed speed and altitude"
+      >
+        <div className="space-y-2">
+          <FieldRow label="Min Throttle [%]">
+            <NumberInput value={config.throttleMin} onChange={v => set({ throttleMin: parseFloat(v) || 50 })} min={10} max={99} step={5} />
+          </FieldRow>
+          <FieldRow label="Max Throttle [%]">
+            <NumberInput value={config.throttleMax} onChange={v => set({ throttleMax: parseFloat(v) || 100 })} min={10} max={100} step={5} />
+          </FieldRow>
+          <FieldRow label="Steps">
+            <NumberInput value={config.throttleSteps} onChange={v => set({ throttleSteps: Math.round(parseFloat(v) || 20) })} min={5} max={100} step={5} />
+          </FieldRow>
+          <FieldRow label="Fixed Altitude [m]">
+            <NumberInput value={config.throttleAltitudeM} onChange={v => set({ throttleAltitudeM: parseFloat(v) || 0 })} min={0} max={20000} step={500} />
+          </FieldRow>
+          <FieldRow label="Fixed Speed [km/h]">
+            <NumberInput value={config.throttleSpeedKmh} onChange={v => set({ throttleSpeedKmh: parseFloat(v) || 100 })} min={0} max={3000} step={50} />
+          </FieldRow>
+        </div>
+        <div className="text-xs text-app-secondary mt-1 ml-[45%]">Throttle 100% = TIT_max ({formData.tit_max_k} K)</div>
       </Section>
 
       <button

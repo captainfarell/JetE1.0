@@ -134,6 +134,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         f"Turbine isentropic efficiency η_t = {request.eta_turbine:.2f}",
         f"Combustor efficiency η_b = {request.eta_combustor:.3f}",
         f"Fan isentropic efficiency η_f = {request.fan_efficiency:.2f}",
+        f"Engine operating at {t*100:.0f}% throttle — TIT = {t * request.tit_max_k:.0f} K (max {request.tit_max_k:.0f} K), effective OPR = {1.0 + (request.overall_pressure_ratio - 1.0) * t:.1f} (max {request.overall_pressure_ratio:.1f})",
     ]
 
     # ── Input Validation ──────────────────────────────────────────────────────
@@ -162,14 +163,26 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     eng   = request.engine_type
     ns    = request.num_spools
     BPR   = request.bypass_ratio if eng == "turbofan" else 0.0
-    FPR   = request.fan_pressure_ratio if eng == "turbofan" else 1.0
-    OPR   = request.overall_pressure_ratio
-    TIT   = request.tit_max_k
     eta_c = request.eta_compressor
     eta_t = request.eta_turbine
     eta_b = request.eta_combustor
     eta_f = request.fan_efficiency
     m_core = request.core_mass_flow_kg_s
+
+    # ── Throttle scaling ──────────────────────────────────────────────────────
+    # OPR and TIT both scale with throttle so the compressor backs off in
+    # proportion to the reduction in fuel flow, mirroring real-engine behaviour.
+    # FPR scales the same way for turbofans.
+    t   = request.throttle_fraction
+    TIT = t * request.tit_max_k
+    OPR = 1.0 + (request.overall_pressure_ratio - 1.0) * t
+    FPR = (1.0 + (request.fan_pressure_ratio - 1.0) * t) if eng == "turbofan" else 1.0
+
+    # Manual spool-PR overrides are only meaningful at full throttle; at part
+    # throttle the effective OPR/FPR differ so let auto-split handle splitting.
+    lp_pr = request.lp_pressure_ratio if t >= 1.0 else None
+    ip_pr = request.ip_pressure_ratio if t >= 1.0 else None
+    hp_pr = request.hp_pressure_ratio if t >= 1.0 else None
 
     # Total mass flow
     m_total = m_core * (1.0 + BPR)
@@ -198,30 +211,24 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         if ns == 1:
             lpr, ipr, hpr = 1.0, 1.0, OPR
         elif ns == 2:
-            lpr, hpr = _split_2spool(OPR, request.lp_pressure_ratio, request.hp_pressure_ratio)
+            lpr, hpr = _split_2spool(OPR, lp_pr, hp_pr)
             ipr = 1.0
         else:  # 3-spool
-            lpr, ipr, hpr = _split_3spool(OPR, request.lp_pressure_ratio, request.ip_pressure_ratio, request.hp_pressure_ratio)
+            lpr, ipr, hpr = _split_3spool(OPR, lp_pr, ip_pr, hp_pr)
     else:  # turbofan
         # Fan = FPR on LP spool; remaining OPR split between IP and HP
         if ns == 1:
-            # Single spool: fan at FPR, then one compressor for remaining OPR/FPR
             lpr = FPR
             hpr = OPR / FPR if FPR > 0 else OPR
             ipr = 1.0
         elif ns == 2:
-            # Fan = LP spool at FPR, HP compressor at OPR/FPR
             lpr = FPR
-            hpr_given = request.hp_pressure_ratio
-            hpr = hpr_given if hpr_given is not None else (OPR / FPR)
+            hpr = hp_pr if hp_pr is not None else (OPR / FPR)
             ipr = 1.0
         else:  # 3-spool turbofan: Fan(LP)=FPR, IP compressor, HP compressor
             lpr = FPR
-            # IP and HP share the remaining pressure ratio
             remaining = OPR / FPR
-            _ipr, _hpr = _split_2spool(
-                remaining, request.ip_pressure_ratio, request.hp_pressure_ratio
-            )
+            _ipr, _hpr = _split_2spool(remaining, ip_pr, hp_pr)
             ipr, hpr = _ipr, _hpr
 
     # ── Return early template ─────────────────────────────────────────────────
@@ -244,6 +251,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
             compressor_stages={},
             tit_fraction=0.0, propulsive_efficiency=0.0,
             thermal_efficiency=0.0, overall_efficiency=0.0,
+            operating_throttle=t,
             errors=errors, warnings=warnings, assumptions=assumptions,
         )
 
@@ -252,13 +260,8 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
 
     # ── Thrust Required ───────────────────────────────────────────────────────
     if request.compute_thrust_from_drag:
-        if request.wing_area_m2 is not None:
-            # Dynamic pressure method
-            q = 0.5 * rho_amb * V0 ** 2
-            drag = q * request.wing_area_m2 * request.cd_cruise
-        else:
-            # Weight × (CD/CL) method (level flight: L = W)
-            drag = request.aircraft_mass_kg * 9.80665 * (request.cd_cruise / request.cl_cruise)
+        # Weight × (CD/CL) method (level flight: L = W)
+        drag = request.aircraft_mass_kg * 9.80665 * (request.cd_cruise / request.cl_cruise)
         thrust_required = drag
     elif request.target_thrust_n is not None:
         thrust_required = request.target_thrust_n
@@ -626,6 +629,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         propulsive_efficiency=round(prop_eff, 4),
         thermal_efficiency=round(thermal_eff, 4),
         overall_efficiency=round(overall_eff, 4),
+        operating_throttle=round(t, 4),
         errors=errors,
         warnings=warnings,
         assumptions=assumptions,
@@ -656,43 +660,51 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
     """
     design = request.design
 
+    def _stag_density(altitude_m: float, speed_kmh: float) -> float:
+        """Intake stagnation density [kg/m³] — used to scale mass flow off-design."""
+        T_amb, p_amb, _ = standard_atmosphere(altitude_m)
+        V0 = speed_kmh / 3.6
+        a0 = math.sqrt(GAMMA * R_AIR * T_amb)
+        M0 = V0 / a0 if a0 > 0 else 0.0
+        Tt2 = T_amb * (1.0 + (GAMMA - 1.0) / 2.0 * M0 ** 2)
+        pt2 = p_amb * (Tt2 / T_amb) ** _GEXP
+        return pt2 / (R_AIR * Tt2)
+
+    # Reference stagnation density at the user's design point
+    rho_design = _stag_density(design.cruise_altitude_m, design.cruise_speed_kmh)
+
     # ── Speed Sweep ───────────────────────────────────────────────────────────
     speeds = list(np.linspace(request.speed_min_kmh, request.speed_max_kmh, request.speed_steps))
 
-    thrust_speed:       list[Optional[float]] = []
-    thrust_req_speed:   list[Optional[float]] = []
-    tsfc_speed:         list[Optional[float]] = []
-    tit_frac_speed:     list[Optional[float]] = []
+    thrust_speed:   list[Optional[float]] = []
+    tsfc_speed:     list[Optional[float]] = []
+    tit_frac_speed: list[Optional[float]] = []
 
     for spd in speeds:
-        req = design.model_copy(update={"cruise_speed_kmh": spd, "cruise_altitude_m": request.altitude_m})
+        rho_pt = _stag_density(request.altitude_m, spd)
+        m_core_scaled = design.core_mass_flow_kg_s * (rho_pt / rho_design) if rho_design > 0 else design.core_mass_flow_kg_s
+        req = design.model_copy(update={
+            "cruise_speed_kmh": spd,
+            "cruise_altitude_m": request.altitude_m,
+            "core_mass_flow_kg_s": m_core_scaled,
+        })
         res = calculate_engine(req)
         if res.errors:
             thrust_speed.append(None)
-            thrust_req_speed.append(None)
             tsfc_speed.append(None)
             tit_frac_speed.append(None)
         else:
             thrust_speed.append(res.net_thrust_n)
-            thrust_req_speed.append(res.thrust_required_n)
-            tsfc_speed.append(res.tsfc_kg_n_h * (1e6 / 3600))   # convert kg/(N·h) → mg/(N·s)
+            tsfc_speed.append(res.tsfc_kg_n_h * (1e6 / 3600))
             tit_frac_speed.append(res.tit_fraction * 100.0)
-
-    # Thrust Required only varies with speed when wing_area is set (dynamic pressure method).
-    # Without wing_area it uses weight×(CD/CL) which is constant — omit to avoid a flat line.
-    thrust_vs_speed_series = [
-        PlotSeries(name="Net Thrust", y_values=thrust_speed, y_label="Thrust", y_unit="N", is_limit_line=False),
-    ]
-    if design.wing_area_m2 is not None:
-        thrust_vs_speed_series.append(
-            PlotSeries(name="Thrust Required", y_values=thrust_req_speed, y_label="Thrust", y_unit="N", is_limit_line=False)
-        )
 
     thrust_vs_speed = PlotData(
         x_values=speeds,
         x_label="Speed",
         x_unit="km/h",
-        series=thrust_vs_speed_series,
+        series=[
+            PlotSeries(name="Net Thrust", y_values=thrust_speed, y_label="Thrust", y_unit="N", is_limit_line=False),
+        ],
     )
 
     tsfc_vs_speed = PlotData(
@@ -724,7 +736,13 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
     tsfc_alt:   list[Optional[float]] = []
 
     for alt in altitudes:
-        req = design.model_copy(update={"cruise_altitude_m": alt, "cruise_speed_kmh": request.speed_kmh})
+        rho_pt = _stag_density(alt, request.speed_kmh)
+        m_core_scaled = design.core_mass_flow_kg_s * (rho_pt / rho_design) if rho_design > 0 else design.core_mass_flow_kg_s
+        req = design.model_copy(update={
+            "cruise_altitude_m": alt,
+            "cruise_speed_kmh": request.speed_kmh,
+            "core_mass_flow_kg_s": m_core_scaled,
+        })
         res = calculate_engine(req)
         if res.errors:
             thrust_alt.append(None)
@@ -751,10 +769,54 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
         ],
     )
 
+    # ── Throttle Sweep ─────────────────────────────────────────────────────────────
+    throttle_fractions = list(np.linspace(request.throttle_min, request.throttle_max, request.throttle_steps))
+
+    thrust_throttle: list[Optional[float]] = []
+    tsfc_throttle:   list[Optional[float]] = []
+
+    for frac in throttle_fractions:
+        req = design.model_copy(update={
+            "throttle_fraction":       frac,
+            "cruise_altitude_m":       request.throttle_altitude_m,
+            "cruise_speed_kmh":        request.throttle_speed_kmh,
+            "compute_thrust_from_drag": False,
+            "target_thrust_n":         None,
+        })
+        res = calculate_engine(req)
+        if res.errors:
+            thrust_throttle.append(None)
+            tsfc_throttle.append(None)
+        else:
+            thrust_throttle.append(res.net_thrust_n)
+            tsfc_throttle.append(res.tsfc_kg_n_h * (1e6 / 3600))
+
+    throttle_pcts = [f * 100.0 for f in throttle_fractions]
+
+    thrust_vs_throttle = PlotData(
+        x_values=throttle_pcts,
+        x_label="Throttle",
+        x_unit="%",
+        series=[
+            PlotSeries(name="Net Thrust", y_values=thrust_throttle, y_label="Thrust", y_unit="N", is_limit_line=False),
+        ],
+    )
+
+    tsfc_vs_throttle = PlotData(
+        x_values=throttle_pcts,
+        x_label="Throttle",
+        x_unit="%",
+        series=[
+            PlotSeries(name="TSFC", y_values=tsfc_throttle, y_label="TSFC", y_unit="mg/(N·s)", is_limit_line=False),
+        ],
+    )
+
     return EnvelopeResults(
         thrust_vs_speed=thrust_vs_speed,
         tsfc_vs_speed=tsfc_vs_speed,
         tit_fraction_vs_speed=tit_frac_vs_speed,
         thrust_vs_altitude=thrust_vs_altitude,
         tsfc_vs_altitude=tsfc_vs_altitude,
+        thrust_vs_throttle=thrust_vs_throttle,
+        tsfc_vs_throttle=tsfc_vs_throttle,
     )
