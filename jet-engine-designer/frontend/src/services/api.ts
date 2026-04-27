@@ -37,7 +37,7 @@ function formatError(err: unknown): string {
 // This wrapper retries on network errors only (no response), reports elapsed
 // time via onStatus, and gives up after MAX_ATTEMPTS × INTERVAL_MS.
 
-const MAX_ATTEMPTS    = 10;
+const MAX_ATTEMPTS    = 24;   // 24 × 5s = 120s — enough for Render free tier cold start
 const INTERVAL_MS     = 5_000;
 
 type StatusCallback = (msg: string | null) => void;
