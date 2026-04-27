@@ -19,6 +19,7 @@ const DEFAULT_FORM: CalculateRequest = {
   eta_combustor: 0.99,
   core_mass_flow_kg_s: 1,
   aircraft_mass_kg: 500,
+  num_engines: 1,
   cl_cruise: 0.4,
   cd_cruise: 0.04,
   cruise_speed_kmh: 500,

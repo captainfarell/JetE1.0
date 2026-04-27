@@ -31,7 +31,9 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
 
   const estimatedDrag = useMemo(() => {
     if (formData.compute_thrust_from_drag) {
-      return (formData.aircraft_mass_kg * 9.80665 * formData.cd_cruise / formData.cl_cruise).toFixed(0);
+      const totalDrag = formData.aircraft_mass_kg * 9.80665 * formData.cd_cruise / formData.cl_cruise;
+      const perEngine = totalDrag / Math.max(1, formData.num_engines);
+      return { total: totalDrag.toFixed(0), perEngine: perEngine.toFixed(0) };
     }
     return null;
   }, [formData]);
@@ -53,6 +55,19 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
               min={100}
               max={575000}
               step={100}
+            />
+          </div>
+          <div>
+            <FieldLabel label="Number of Engines" paramKey="num_engines" defaults={defaults} />
+            <NumberInput
+              value={formData.num_engines}
+              onChange={v => {
+                const n = parseInt(v, 10);
+                onChange({ num_engines: isNaN(n) ? 2 : Math.max(1, Math.min(4, n)) });
+              }}
+              min={1}
+              max={4}
+              step={1}
             />
           </div>
           <div>
@@ -79,7 +94,10 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
         <div className="mt-2 flex gap-4 text-xs text-app-secondary bg-app-muted/50 rounded-md p-2">
           <span>L/D = <strong className="text-app-text">{ld}</strong></span>
           {estimatedDrag && (
-            <span>Estimated cruise drag = <strong className="text-app-text">{estimatedDrag} N</strong></span>
+            <>
+              <span>Total drag = <strong className="text-app-text">{estimatedDrag.total} N</strong></span>
+              <span>Per engine = <strong className="text-app-text">{estimatedDrag.perEngine} N</strong></span>
+            </>
           )}
         </div>
       </div>
@@ -187,7 +205,10 @@ export default function AircraftConfig({ formData, onChange, defaults }: Props) 
 
         {formData.compute_thrust_from_drag && estimatedDrag && (
           <div className="mt-2 text-xs text-app-accent bg-app-surface rounded-md p-2">
-            Required thrust at cruise: ~{estimatedDrag} N per engine
+            Required thrust per engine: ~{estimatedDrag.perEngine} N
+            {formData.num_engines > 1 && (
+              <span className="text-app-secondary"> (total drag {estimatedDrag.total} N ÷ {formData.num_engines} engines)</span>
+            )}
           </div>
         )}
       </div>

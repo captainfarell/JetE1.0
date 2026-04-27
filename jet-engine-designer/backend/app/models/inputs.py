@@ -108,6 +108,12 @@ class CalculateRequest(BaseModel):
         gt=0.0,
         description="Aircraft total mass [kg]",
     )
+    num_engines: int = Field(
+        1,
+        ge=1,
+        le=4,
+        description="Number of engines on the aircraft (1–4). Used to split total drag into per-engine thrust requirement.",
+    )
     cl_cruise: float = Field(
         0.4,
         gt=0.0,
@@ -130,13 +136,16 @@ class CalculateRequest(BaseModel):
     )
     ambient_temperature_override_k: Optional[float] = Field(
         None,
-        description="Override ISA ambient temperature [K] (None = use ISA)",
+        gt=0.0,
+        lt=600.0,
+        description="Override ISA ambient temperature [K] (None = use ISA). Must be between 0 and 600 K.",
     )
 
     # ── Thrust Targeting ─────────────────────────────────────────────────────
     target_thrust_n: Optional[float] = Field(
         None,
-        description="Target net thrust [N] (if not computing from drag)",
+        ge=0.0,
+        description="Target net thrust [N] (if not computing from drag). Must be ≥ 0.",
     )
     compute_thrust_from_drag: bool = Field(
         True,

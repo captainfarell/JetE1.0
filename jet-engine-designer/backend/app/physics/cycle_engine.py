@@ -41,6 +41,7 @@ from app.models.outputs import (
 from app.physics.atmosphere import standard_atmosphere
 from app.physics.cycle_core import (
     GAMMA, CP, R_AIR, LHV_JET_A,
+    GAMMA_HOT, CP_HOT,
     _GEXP,
     compressor_exit_temp,
     turbine_exit_pressure,
@@ -122,7 +123,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     warnings:    list[str] = []
     t = request.throttle_fraction
     assumptions: list[str] = [
-        "Ideal gas with γ = 1.4, cp = 1005 J/(kg·K) throughout",
+        "Calorically split ideal gas: γ = 1.4, cp = 1005 J/(kg·K) for compressor/fan/intake (cold air); γ = 1.33, cp = 1148 J/(kg·K) for turbine/nozzle (hot combustion gas)",
         "Isentropic intake (no pressure loss)",
         "No combustor pressure loss assumed",
         "No turbine cooling air modeled",
@@ -135,10 +136,14 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         f"Turbine isentropic efficiency η_t = {request.eta_turbine:.2f}",
         f"Combustor efficiency η_b = {request.eta_combustor:.3f}",
         f"Fan isentropic efficiency η_f = {request.fan_efficiency:.2f}",
-        f"Engine operating at {t*100:.0f}% throttle — TIT = {t * request.tit_max_k:.0f} K (max {request.tit_max_k:.0f} K), effective OPR = {1.0 + (request.overall_pressure_ratio - 1.0) * t:.1f} (max {request.overall_pressure_ratio:.1f})",
+        f"Engine operating at {t*100:.0f}% throttle — TIT = {t * request.tit_max_k:.0f} K (max {request.tit_max_k:.0f} K), "
+        f"effective OPR = {1.0 + (request.overall_pressure_ratio - 1.0) * t**0.5:.1f} (max {request.overall_pressure_ratio:.1f}). "
+        f"OPR uses √throttle scaling (compressor off-design); TIT is linear.",
     ]
 
     # ── Input Validation ──────────────────────────────────────────────────────
+    if request.ambient_temperature_override_k is not None and request.ambient_temperature_override_k <= 0:
+        errors.append("ambient_temperature_override_k must be > 0 K (physical temperature). Values ≤ 0 K are not possible.")
     if request.engine_type not in ("turbojet", "turbofan"):
         errors.append(f"Invalid engine_type '{request.engine_type}'. Must be 'turbojet' or 'turbofan'.")
     if request.num_spools not in (1, 2, 3):
@@ -149,8 +154,8 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         errors.append("core_mass_flow_kg_s must be > 0. Set a positive core mass flow (e.g. 10–500 kg/s), or enable Auto-size from thrust requirement.")
     if request.bypass_ratio < 0:
         errors.append("bypass_ratio must be ≥ 0. Set BPR to 0 for a turbojet, or a positive value (e.g. 5–12) for a turbofan.")
-    if request.engine_type == "turbofan" and request.fan_pressure_ratio > request.overall_pressure_ratio:
-        errors.append("fan_pressure_ratio cannot exceed overall_pressure_ratio. Reduce Fan PR below OPR, or increase OPR.")
+    if request.engine_type == "turbofan" and request.fan_pressure_ratio >= request.overall_pressure_ratio:
+        errors.append("fan_pressure_ratio must be less than overall_pressure_ratio (fan compresses only the bypass stream, not the full OPR). Reduce Fan PR below OPR, or increase OPR.")
     for eff_name, eff_val in [
         ("fan_efficiency", request.fan_efficiency),
         ("eta_compressor", request.eta_compressor),
@@ -164,6 +169,11 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     eng   = request.engine_type
     ns    = request.num_spools
     BPR   = request.bypass_ratio if eng == "turbofan" else 0.0
+    if eng == "turbojet" and request.bypass_ratio > 0:
+        warnings.append(
+            f"bypass_ratio = {request.bypass_ratio:.1f} is ignored for a turbojet — "
+            "turbojets have no bypass stream (BPR = 0). Switch to turbofan to use bypass ratio."
+        )
     eta_c = request.eta_compressor
     eta_t = request.eta_turbine
     eta_b = request.eta_combustor
@@ -171,12 +181,14 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     m_core = request.core_mass_flow_kg_s
 
     # ── Throttle scaling ──────────────────────────────────────────────────────
-    # OPR and TIT both scale with throttle so the compressor backs off in
-    # proportion to the reduction in fuel flow, mirroring real-engine behaviour.
-    # FPR scales the same way for turbofans.
+    # TIT scales linearly with throttle (direct fuel-flow control).
+    # OPR and FPR scale with sqrt(throttle): real compressor speed ∝ sqrt(power),
+    # so pressure ratio falls more slowly than TIT at part throttle.
+    # This better represents measured cruise TSFC vs the purely linear model.
     TIT = t * request.tit_max_k
-    OPR = 1.0 + (request.overall_pressure_ratio - 1.0) * t
-    FPR = (1.0 + (request.fan_pressure_ratio - 1.0) * t) if eng == "turbofan" else 1.0
+    _opr_t = t ** 0.5   # compressor off-design exponent
+    OPR = 1.0 + (request.overall_pressure_ratio - 1.0) * _opr_t
+    FPR = (1.0 + (request.fan_pressure_ratio - 1.0) * _opr_t) if eng == "turbofan" else 1.0
 
     # Manual spool-PR overrides are only meaningful at full throttle; at part
     # throttle the effective OPR/FPR differ so let auto-split handle splitting.
@@ -187,9 +199,19 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     # Total mass flow
     m_total = m_core * (1.0 + BPR)
     m_bypass = m_core * BPR
+    # cp ratio: compressor (cold) / turbine (hot) — used in shaft work balance.
+    # Turbine temperature drop = _r × compressor temperature rise, because the
+    # same shaft work involves different cp on each side of the combustor.
+    _r = CP / CP_HOT  # ≈ 0.875
 
     # ── Atmosphere & Intake ───────────────────────────────────────────────────
     T_amb, p_amb, rho_amb = standard_atmosphere(request.cruise_altitude_m)
+    if request.cruise_altitude_m > 20000:
+        warnings.append(
+            f"Cruise altitude {request.cruise_altitude_m:.0f} m exceeds 20 000 m (ISA lower stratosphere limit). "
+            "The atmosphere model holds T = 216.65 K above 11 000 m; pressures are extrapolated and results "
+            "above 20 000 m may not be physically representative."
+        )
     if request.ambient_temperature_override_k is not None:
         T_amb = request.ambient_temperature_override_k
         # Recompute density with overridden T (keep pressure from ISA)
@@ -260,9 +282,10 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
 
     # ── Thrust Required ───────────────────────────────────────────────────────
     if request.compute_thrust_from_drag:
-        # Weight × (CD/CL) method (level flight: L = W)
+        # Total drag = W × (CD/CL); divide by number of engines for per-engine requirement
+        n_eng = max(1, request.num_engines)
         drag = request.aircraft_mass_kg * 9.80665 * (request.cd_cruise / request.cl_cruise)
-        thrust_required = drag
+        thrust_required = drag / n_eng
     elif request.target_thrust_n is not None:
         thrust_required = request.target_thrust_n
     else:
@@ -287,12 +310,12 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
                 pt3 = pt2 * OPR
                 Tt4 = TIT
                 pt4 = pt3  # No combustor pressure loss
-                fuel_flow = m_core * CP * (Tt4 - Tt3) / (eta_b * LHV_JET_A)
+                fuel_flow = m_core * (CP_HOT * Tt4 - CP * Tt3) / (eta_b * LHV_JET_A)
                 if fuel_flow < 0:
                     errors.append("TIT is below compressor exit temperature — impossible to add heat. Increase TIT, or reduce OPR.")
                     return _make_empty_results()
                 # Turbine: extract exactly the compressor work (work balance)
-                Tt5 = Tt4 - (Tt3 - Tt2)
+                Tt5 = Tt4 - _r * (Tt3 - Tt2)
                 pt5 = turbine_exit_pressure(Tt4, Tt5, pt4, eta_t)
                 Vj_core, p_exit_c, A_exit_c, choked_c = nozzle_exit(Tt5, pt5, p_amb, m_core)
 
@@ -304,15 +327,15 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
                 pt3  = pt21 * hpr
                 Tt4  = TIT
                 pt4  = pt3
-                fuel_flow = m_core * CP * (Tt4 - Tt3) / (eta_b * LHV_JET_A)
+                fuel_flow = m_core * (CP_HOT * Tt4 - CP * Tt3) / (eta_b * LHV_JET_A)
                 if fuel_flow < 0:
                     errors.append("TIT is below compressor exit temperature — impossible to add heat. Increase TIT, or reduce OPR.")
                     return _make_empty_results()
                 # HP turbine drives HP compressor
-                Tt45 = Tt4 - (Tt3 - Tt21)
+                Tt45 = Tt4 - _r * (Tt3 - Tt21)
                 pt45 = turbine_exit_pressure(Tt4, Tt45, pt4, eta_t)
                 # LP turbine drives LP compressor
-                Tt5  = Tt45 - (Tt21 - Tt2)
+                Tt5  = Tt45 - _r * (Tt21 - Tt2)
                 pt5  = turbine_exit_pressure(Tt45, Tt5, pt45, eta_t)
                 Vj_core, p_exit_c, A_exit_c, choked_c = nozzle_exit(Tt5, pt5, p_amb, m_core)
 
@@ -326,18 +349,18 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
                 pt3  = pt25 * hpr
                 Tt4  = TIT
                 pt4  = pt3
-                fuel_flow = m_core * CP * (Tt4 - Tt3) / (eta_b * LHV_JET_A)
+                fuel_flow = m_core * (CP_HOT * Tt4 - CP * Tt3) / (eta_b * LHV_JET_A)
                 if fuel_flow < 0:
                     errors.append("TIT is below compressor exit temperature — impossible to add heat. Increase TIT, or reduce OPR.")
                     return _make_empty_results()
                 # HP turbine → HP compressor
-                Tt45 = Tt4  - (Tt3  - Tt25)
+                Tt45 = Tt4  - _r * (Tt3  - Tt25)
                 pt45 = turbine_exit_pressure(Tt4,  Tt45, pt4,  eta_t)
                 # IP turbine → IP compressor
-                Tt5  = Tt45 - (Tt25 - Tt21)
+                Tt5  = Tt45 - _r * (Tt25 - Tt21)
                 pt5  = turbine_exit_pressure(Tt45, Tt5,  pt45, eta_t)
                 # LP turbine → LP compressor
-                Tt55 = Tt5  - (Tt21 - Tt2)
+                Tt55 = Tt5  - _r * (Tt21 - Tt2)
                 pt55 = turbine_exit_pressure(Tt5,  Tt55, pt5,  eta_t)
                 Vj_core, p_exit_c, A_exit_c, choked_c = nozzle_exit(Tt55, pt55, p_amb, m_core)
                 # For station reporting, map Tt55 to Tt5 slot if 3-spool
@@ -354,17 +377,18 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
                 pt3  = pt21 * hpr
                 Tt4  = TIT
                 pt4  = pt3
-                fuel_flow = m_core * CP * (Tt4 - Tt3) / (eta_b * LHV_JET_A)
+                fuel_flow = m_core * (CP_HOT * Tt4 - CP * Tt3) / (eta_b * LHV_JET_A)
                 if fuel_flow < 0:
                     errors.append("TIT is below compressor exit temperature — impossible to add heat. Increase TIT, or reduce OPR.")
                     return _make_empty_results()
                 # Single turbine drives fan (all flow) + core compressor (core flow only)
                 # Energy balance: m_core*(Tt4 - Tt5) = m_core*(Tt3 - Tt21) + m_total*(Tt21 - Tt2)
+                # Turbine (hot cp) drives fan+compressor (cold cp): scale by _r
                 work_total = m_core * (Tt3 - Tt21) + m_total * (Tt21 - Tt2)
-                Tt5 = Tt4 - work_total / m_core
+                Tt5 = Tt4 - _r * work_total / m_core
                 pt5 = turbine_exit_pressure(Tt4, Tt5, pt4, eta_t)
                 Vj_core,   p_exit_c, A_exit_c, choked_c = nozzle_exit(Tt5,  pt5,  p_amb, m_core)
-                Vj_bypass, p_exit_b, A_exit_b, choked_b = nozzle_exit(Tt21, pt21, p_amb, m_bypass)
+                Vj_bypass, p_exit_b, A_exit_b, choked_b = nozzle_exit(Tt21, pt21, p_amb, m_bypass, gamma=GAMMA, cp_nozzle=CP)
 
             elif ns == 2:
                 # Two-spool turbofan: LP spool = fan; HP spool = HP compressor + HP turbine
@@ -376,20 +400,19 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
                 pt3  = pt21 * hpr
                 Tt4  = TIT
                 pt4  = pt3
-                fuel_flow = m_core * CP * (Tt4 - Tt3) / (eta_b * LHV_JET_A)
+                fuel_flow = m_core * (CP_HOT * Tt4 - CP * Tt3) / (eta_b * LHV_JET_A)
                 if fuel_flow < 0:
                     errors.append("TIT is below compressor exit temperature — impossible to add heat. Increase TIT, or reduce OPR.")
                     return _make_empty_results()
                 # HP turbine drives HP compressor (core flow energy balance)
                 #   m_core*(Tt4 - Tt45) = m_core*(Tt3 - Tt21)
-                Tt45 = Tt4 - (Tt3 - Tt21)
+                Tt45 = Tt4 - _r * (Tt3 - Tt21)
                 pt45 = turbine_exit_pressure(Tt4, Tt45, pt4, eta_t)
-                # LP turbine drives fan (total flow energy balance)
-                #   m_core*(Tt45 - Tt5) = m_total*(Tt21 - Tt2)
-                Tt5  = Tt45 - (1.0 + BPR) * (Tt21 - Tt2)
+                # LP turbine (hot cp) drives fan (cold cp) for total flow
+                Tt5  = Tt45 - _r * (1.0 + BPR) * (Tt21 - Tt2)
                 pt5  = turbine_exit_pressure(Tt45, Tt5, pt45, eta_t)
                 Vj_core,   p_exit_c, A_exit_c, choked_c = nozzle_exit(Tt5,  pt5,  p_amb, m_core)
-                Vj_bypass, p_exit_b, A_exit_b, choked_b = nozzle_exit(Tt21, pt21, p_amb, m_bypass)
+                Vj_bypass, p_exit_b, A_exit_b, choked_b = nozzle_exit(Tt21, pt21, p_amb, m_bypass, gamma=GAMMA, cp_nozzle=CP)
 
             else:  # ns == 3
                 # Three-spool turbofan: Fan(LP), IP compressor, HP compressor
@@ -401,22 +424,21 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
                 pt3  = pt25 * hpr
                 Tt4  = TIT
                 pt4  = pt3
-                fuel_flow = m_core * CP * (Tt4 - Tt3) / (eta_b * LHV_JET_A)
+                fuel_flow = m_core * (CP_HOT * Tt4 - CP * Tt3) / (eta_b * LHV_JET_A)
                 if fuel_flow < 0:
                     errors.append("TIT is below compressor exit temperature — impossible to add heat. Increase TIT, or reduce OPR.")
                     return _make_empty_results()
-                # HP turbine → HP compressor (core only)
-                Tt45 = Tt4  - (Tt3  - Tt25)
+                # HP turbine (hot cp) → HP compressor (cold cp)
+                Tt45 = Tt4  - _r * (Tt3  - Tt25)
                 pt45 = turbine_exit_pressure(Tt4,  Tt45, pt4,  eta_t)
-                # IP turbine → IP compressor (core only)
-                Tt5  = Tt45 - (Tt25 - Tt21)
+                # IP turbine (hot cp) → IP compressor (cold cp)
+                Tt5  = Tt45 - _r * (Tt25 - Tt21)
                 pt5  = turbine_exit_pressure(Tt45, Tt5,  pt45, eta_t)
-                # LP turbine → fan (total flow)
-                #   m_core*(Tt5 - Tt55) = m_total*(Tt21 - Tt2)
-                Tt55 = Tt5  - (1.0 + BPR) * (Tt21 - Tt2)
+                # LP turbine (hot cp) → fan (cold cp, total flow)
+                Tt55 = Tt5  - _r * (1.0 + BPR) * (Tt21 - Tt2)
                 pt55 = turbine_exit_pressure(Tt5,  Tt55, pt5,  eta_t)
                 Vj_core,   p_exit_c, A_exit_c, choked_c = nozzle_exit(Tt55, pt55, p_amb, m_core)
-                Vj_bypass, p_exit_b, A_exit_b, choked_b = nozzle_exit(Tt21, pt21, p_amb, m_bypass)
+                Vj_bypass, p_exit_b, A_exit_b, choked_b = nozzle_exit(Tt21, pt21, p_amb, m_bypass, gamma=GAMMA, cp_nozzle=CP)
 
     except (ValueError, ZeroDivisionError, OverflowError) as exc:
         errors.append(f"Thermodynamic calculation error: {exc}")
@@ -515,6 +537,12 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
 
     if OPR > 40.0:
         warnings.append("Very high OPR (>40) — check stage count and surge margin. Consider reducing OPR or splitting across more spools.")
+
+    if request.tit_max_k > 2200:
+        warnings.append(
+            f"TIT = {request.tit_max_k:.0f} K exceeds known material limits. "
+            "Best current single-crystal + TBC blades operate to ~1950 K. Values above 2200 K are not physically achievable."
+        )
 
     if tit_fraction > 0.95:
         warnings.append(
@@ -660,6 +688,16 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
     """
     design = request.design
 
+    # If auto-size is enabled, resolve the actual design-point mass flow first
+    # so all sweeps share the same baseline as the Results tab.
+    if design.auto_size_mass_flow:
+        _resolved = calculate_engine(design)
+        if not _resolved.errors:
+            design = design.model_copy(update={
+                "core_mass_flow_kg_s": _resolved.core_mass_flow_kg_s,
+                "auto_size_mass_flow": False,
+            })
+
     def _stag_density(altitude_m: float, speed_kmh: float) -> float:
         """Intake stagnation density [kg/m³] — used to scale mass flow off-design."""
         T_amb, p_amb, _ = standard_atmosphere(altitude_m)
@@ -782,12 +820,16 @@ def calculate_envelope(request: EnvelopeRequest) -> EnvelopeResults:
     tsfc_throttle:   list[Optional[float]] = []
 
     for frac in throttle_fractions:
+        rho_pt_thr = _stag_density(request.throttle_altitude_m, request.throttle_speed_kmh)
+        m_core_thr = design.core_mass_flow_kg_s * (rho_pt_thr / rho_design) if rho_design > 0 else design.core_mass_flow_kg_s
         req = design.model_copy(update={
-            "throttle_fraction":       frac,
-            "cruise_altitude_m":       request.throttle_altitude_m,
-            "cruise_speed_kmh":        request.throttle_speed_kmh,
+            "throttle_fraction":        frac,
+            "cruise_altitude_m":        request.throttle_altitude_m,
+            "cruise_speed_kmh":         request.throttle_speed_kmh,
+            "core_mass_flow_kg_s":      m_core_thr,
+            "auto_size_mass_flow":      False,
             "compute_thrust_from_drag": False,
-            "target_thrust_n":         None,
+            "target_thrust_n":          None,
         })
         res = calculate_engine(req)
         if res.errors:

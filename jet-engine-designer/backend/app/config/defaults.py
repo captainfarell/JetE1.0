@@ -127,25 +127,25 @@ PARAMETER_DESCRIPTIONS = {
     "bypass_ratio": {
         "label": "Bypass Ratio (BPR)",
         "description": "Ratio of bypass air mass flow to core air mass flow. Higher BPR means more air is accelerated by the fan at lower velocity, which is thermodynamically more efficient for thrust production.",
-        "typical_range": "0 (turbojet) to 12+ (ultra-high bypass engines like PW1000G)",
+        "typical_range": "0 (turbojet: J79, Olympus 593), 0.3–1.0 (low-bypass military: F404, EJ200), 3–6 (narrowbody civil: CFM56-7B 5.1, IAE V2500 ~4.6), 7–10 (widebody: GE90-115B 9.0, GEnx-2B 9.6), 10–14 (UHBR: Trent 1000 11.0, PW1100G 12.5, LEAP-1A ~11)",
         "trade_off": "Higher BPR = lower TSFC and noise, but larger/heavier engine and higher nacelle drag at high speeds.",
     },
     "fan_pressure_ratio": {
         "label": "Fan Pressure Ratio (FPR)",
         "description": "Total pressure ratio across the fan stage. A higher FPR gives more pressure to both the bypass stream and core, but reduces the bypass jet velocity advantage.",
-        "typical_range": "1.3–1.8 for modern turbofans; lower is better for very high-BPR engines",
+        "typical_range": "1.3–1.5 (ultra-high-BPR: Trent 1000 ~1.55, GEnx ~1.62), 1.5–1.8 (narrowbody civil: CFM56-7B ~1.65, V2500 ~1.65), 1.8–2.5 (low-BPR military: F404 ~3.0 in bypass). Lower FPR is better for fuel efficiency; higher FPR suits compact designs.",
         "trade_off": "Lower FPR with high BPR = better efficiency; higher FPR = more compact but louder.",
     },
     "overall_pressure_ratio": {
         "label": "Overall Pressure Ratio (OPR)",
         "description": "Total pressure ratio from inlet to combustor entry. Higher OPR increases the thermodynamic efficiency of the Brayton cycle (more expansion work available), but requires more compressor stages and stronger materials.",
-        "typical_range": "8–12 (older/small), 15–25 (modern narrowbody), 35–50 (latest technology)",
+        "typical_range": "8–12 (older/small: Viper 11, J79 ~13.5), 20–32 (1990s narrowbody: CFM56-7B 32.8), 35–42 (modern widebody: GE90-115B 42, GEnx 45), 45–60 (latest UHBR: Trent XWB 52, PW1100G ~60). Values above 60 are beyond current technology.",
         "trade_off": "Higher OPR = better thermal efficiency and TSFC, but higher compressor exit temperature limits fuel savings, and surge margin becomes critical.",
     },
     "tit_max_k": {
         "label": "Turbine Inlet Temperature (TIT)",
         "description": "Maximum temperature of gas entering the first turbine stage. Higher TIT allows more energy to be extracted for thrust, but is strictly limited by turbine blade material capabilities.",
-        "typical_range": "1100–1300 K (uncooled), 1300–1600 K (actively cooled single-crystal blades with TBC)",
+        "typical_range": "1100–1300 K (1950s–60s uncooled: de Havilland Ghost, J79), 1300–1500 K (1970s–80s cooled: CFM56-5A, JT9D), 1500–1700 K (1990s–2000s SX blades: CFM56-7B ~1650 K, V2500), 1700–1950 K (modern cooled SX + TBC: GE90, Trent 1000, LEAP ~1900 K). Values above 2200 K are not physically achievable.",
         "trade_off": "Higher TIT = more thrust per kg of air, but requires expensive cooled turbine blades and reduces engine life.",
     },
     "eta_compressor": {
@@ -169,8 +169,14 @@ PARAMETER_DESCRIPTIONS = {
     "core_mass_flow_kg_s": {
         "label": "Core Mass Flow Rate",
         "description": "Mass flow rate of air entering the engine core (compressor inlet). Together with bypass ratio, determines total air intake and overall engine size.",
-        "typical_range": "5–30 kg/s (small), 50–150 kg/s (medium), 200–600 kg/s (large)",
+        "typical_range": "3–15 kg/s (small business jet: Williams FJ44 ~8 kg/s, JetCat P200 ~0.5 kg/s), 20–60 kg/s (narrowbody: CFM56-7B ~43 kg/s at cruise, V2500 ~50 kg/s), 80–150 kg/s (widebody: GE90-115B ~120 kg/s, Trent 1000 ~90 kg/s). Note: mass flow is lower at cruise altitude than at sea level.",
         "trade_off": "Larger core = more thrust but heavier engine. Matched to aircraft requirement and desired T/W ratio.",
+    },
+    "num_engines": {
+        "label": "Number of Engines",
+        "description": "How many engines the aircraft has. The total aircraft drag is divided equally among all engines to compute the per-engine thrust requirement. Single-engine aircraft (trainers, UAVs) use 1; most commercial jets use 2; some widebodies (A340, B747) use 4.",
+        "typical_range": "1 (sailplane-engined, trainers, UAVs), 2 (most modern airliners — A320, B737, B777, B787), 4 (A340, B747, A380, B-52)",
+        "trade_off": "More engines spread the thrust requirement but add weight, maintenance cost, and complexity. Modern twin-engine ETOPS has largely replaced 4-engine widebodies.",
     },
     "aircraft_mass_kg": {
         "label": "Aircraft Mass",
@@ -199,7 +205,7 @@ PARAMETER_DESCRIPTIONS = {
     "cruise_altitude_m": {
         "label": "Cruise Altitude",
         "description": "Altitude above sea level during cruise. Higher altitude means lower air density, reducing drag and allowing higher true airspeed for the same dynamic pressure.",
-        "typical_range": "3,000–7,000 m (regional turboprops), 9,000–13,000 m (commercial jets)",
+        "typical_range": "0–3 000 m (helicopters, light GA), 3 000–7 000 m (turboprops: ATR-72, Q400), 9 000–12 000 m (commercial jets: B737 ~10 700 m / FL350, A320 ~11 900 m / FL390, B777 ~10 600 m). ISA model is accurate to 20 000 m; above that a warning is shown.",
         "trade_off": "Higher altitude = lower density = less drag but engine must work harder to maintain mass flow. Tropopause (~11,000 m) is optimal for many jets.",
     },
     "fan_efficiency": {

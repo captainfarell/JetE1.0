@@ -17,6 +17,7 @@ export interface CalculateRequest {
   eta_combustor: number;
   core_mass_flow_kg_s: number;
   aircraft_mass_kg: number;
+  num_engines: number;
   cl_cruise: number;
   cd_cruise: number;
   cruise_speed_kmh: number;

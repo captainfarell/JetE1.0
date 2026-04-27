@@ -454,7 +454,7 @@ const STEPS: StepNode[] = [
       },
       {
         label: 'Thrust specific fuel consumption',
-        eq: <span>TSFC = <Frac num="ṁ_f" den={<span>F<sub>net</sub></span>} /> <span className="text-app-secondary font-sans">[kg/(N·h)]</span></span>,
+        eq: <span>TSFC = <Frac num="ṁ_f" den={<span>F<sub>net</sub></span>} /></span>,
       },
       {
         label: 'Propulsive efficiency',
@@ -464,7 +464,7 @@ const STEPS: StepNode[] = [
     symbols: [
       { sym: 'F_net', meaning: 'Net thrust',                                              unit: 'N'       },
       { sym: 'V₀',    meaning: 'Flight velocity = cruise speed converted to m/s',          unit: 'm/s'     },
-      { sym: 'TSFC',  meaning: 'Thrust specific fuel consumption — fuel burned per unit thrust per hour', unit: 'kg/(N·h)' },
+      { sym: 'TSFC',  meaning: 'Thrust specific fuel consumption — fuel burned per unit thrust per hour', unit: '—' },
       { sym: 'η_p',   meaning: 'Propulsive efficiency — useful power / jet kinetic power', unit: '—'       },
     ],
     outputs: [
@@ -487,15 +487,17 @@ const LEGEND: { kind: BadgeKind; label: string }[] = [
 // ─── Constants table data ─────────────────────────────────────────────────────
 
 const CONSTANTS = [
-  { sym: 'γ',        val: '1.4',              desc: 'Heat capacity ratio — ideal diatomic gas (air)' },
-  { sym: 'cp',       val: '1005 J/(kg·K)',     desc: 'Specific heat at constant pressure' },
+  { sym: 'γ_c',      val: '1.4',              desc: 'Heat capacity ratio — cold air (compressor, fan, intake)' },
+  { sym: 'γ_t',      val: '1.33',             desc: 'Heat capacity ratio — hot combustion gas (turbine, nozzle)' },
+  { sym: 'cp_c',     val: '1005 J/(kg·K)',     desc: 'Specific heat at constant pressure — cold air side' },
+  { sym: 'cp_t',     val: '1148 J/(kg·K)',     desc: 'Specific heat at constant pressure — hot gas side' },
   { sym: 'R',        val: '287.058 J/(kg·K)',  desc: 'Specific gas constant for air (= cp − cv)' },
   { sym: 'LHV',      val: '43.2 MJ/kg',        desc: 'Lower heating value of Jet-A fuel' },
   { sym: 'ΔPR/stage', val: '1.3',             desc: 'Axial compressor PR per stage — used only for stage count estimate' },
 ];
 
 const ASSUMPTIONS = [
-  'Ideal gas with constant γ = 1.4 and cp = 1005 J/(kg·K) at all stations',
+  'Calorically split ideal gas: γ = 1.4, cp = 1005 J/(kg·K) for compressor/fan/intake (cold air); γ = 1.33, cp = 1148 J/(kg·K) for turbine/nozzle (hot combustion gas)',
   'Isentropic intake — no shock losses or wall friction',
   'No combustor total pressure loss (pt4 = pt3)',
   'No turbine cooling air (full core mass flow through turbine)',
@@ -588,7 +590,7 @@ export default function WorkflowSection() {
         >
           <div>
             <span className="text-sm font-semibold text-app-text">Constants &amp; Model Assumptions</span>
-            <span className="ml-2 text-xs text-app-secondary">γ · cp · R · LHV · model limits</span>
+            <span className="ml-2 text-xs text-app-secondary">γ_c · γ_t · cp · R · LHV · model limits</span>
           </div>
           {showConstants
             ? <ChevronDown size={14} className="text-app-dim shrink-0" />
