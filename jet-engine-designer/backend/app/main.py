@@ -35,16 +35,17 @@ app = FastAPI(
 )
 
 # ALLOWED_ORIGINS env var: comma-separated list of allowed origins.
-# Defaults to "*" for local development; set it in production (e.g. Koyeb env vars).
+# Defaults to "*" (allow all) when unset — safe for a public read-only API.
+# In production set it to your frontend URL, e.g. https://your-app.vercel.app
 _raw_origins = os.environ.get("ALLOWED_ORIGINS", "*")
 _origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Accept"],
 )
 
 
