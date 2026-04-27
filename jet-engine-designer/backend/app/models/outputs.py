@@ -112,7 +112,6 @@ class EngineResults(BaseModel):
     # ── Diagnostics ──────────────────────────────────────────────────────────
     errors: list[str]
     warnings: list[str]
-    assumptions: list[str]
 
 
 # ─── Plot / Envelope Models ──────────────────────────────────────────────────

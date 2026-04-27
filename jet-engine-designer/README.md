@@ -124,8 +124,7 @@ jet-engine-designer/
         ├── types/engine.ts       ← TypeScript interfaces (mirrors Pydantic models)
         ├── services/api.ts       ← Axios API client (calculateEngine, calculateEnvelope, getDefaults)
         ├── themes/
-        │   ├── palette-original.css  ← Dark teal / navy (original)
-        │   └── palette-3125.css      ← Earthy green / olive-black (active)
+        │   └── palette-blueprint.css ← Active colour palette (all --app-* CSS variables)
         └── components/
             ├── EngineConfig.tsx      ← Architecture inputs (type, spools, OPR, TIT, efficiencies)
             ├── AircraftConfig.tsx    ← Aircraft and flight condition inputs
@@ -148,7 +147,7 @@ jet-engine-designer/
 - **ISA atmosphere model** — troposphere + stratosphere, with deviation (ISA+ΔT) support
 - **Workflow tab** — collapsible step cards with equations, per-symbol glossary, and a constants/assumptions reference panel
 - **Learn tab** — Brayton cycle explainer, ISA description, key parameters, further reading
-- **Earthy colour theme** — palette-3125 (olive-black / amber gold accent)
+- **Earthy colour theme** — olive-black / amber gold accent
 
 ---
 
@@ -196,13 +195,7 @@ The physics is split across focused modules — never add logic to `cycle.py` (i
 
 ### Theming
 
-To swap the colour palette, change the import line in `frontend/src/main.tsx`:
-
-```ts
-import './themes/palette-3125.css'   // ← change to another palette file
-```
-
-Create new palette files in `frontend/src/themes/` by copying an existing one and redefining the `--app-*` CSS variables.
+All colour tokens are `--app-*` CSS variables defined in `frontend/src/themes/palette-blueprint.css` and imported once in `main.tsx`. Edit the variable values in that file to retheme the app.
 
 ---
 
@@ -220,11 +213,11 @@ Tt_out = Tt_in * [1 + (PR^((γ-1)/γ) - 1) / η_c]
 pt_out = pt_in * PR
 ```
 
-### Combustor
+### Combustor (calorically split)
 ```
-ṁ_f * LHV * η_b = ṁ_core * cp * (Tt4 - Tt3)
+ṁ_f = ṁ_core * (cp_t * Tt4 - cp_c * Tt3) / (η_b * LHV)
 ```
-Fuel: Jet-A, LHV = 43.2 MJ/kg.
+Fuel: Jet-A, LHV = 43.2 MJ/kg (representative typical; ASTM D1655 minimum 42.8 MJ/kg).
 
 ### Turbine (adiabatic efficiency)
 ```
@@ -249,12 +242,14 @@ TSFC = ṁ_f / T   [kg/(N·s)] or [kg/(N·h)]
 
 ## Key Assumptions
 
-- Ideal gas: γ = 1.4, cp = 1005 J/(kg·K) throughout all stations
+- Calorically split ideal gas: γ = 1.4, cp = 1005 J/(kg·K) for cold sections (compressor/fan/intake); γ = 1.33, cp = 1148 J/(kg·K) for hot sections (turbine/nozzle)
+- Isentropic intake (no shock or wall losses)
 - No combustor total pressure loss
 - No duct pressure losses
 - No turbine cooling air
 - 100% shaft mechanical efficiency
 - Converging-only nozzle (no supersonic expansion)
+- Fuel mass fraction added to core flow
 - ISA standard atmosphere unless temperature override is specified
 
 ---

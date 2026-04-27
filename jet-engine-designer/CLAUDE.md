@@ -36,7 +36,7 @@ jet-engine-designer/
     ├── hooks/useEngineForm.ts   ← formData + defaults state + updateForm
     ├── types/engine.ts          ← TypeScript interfaces (must mirror Pydantic models exactly)
     ├── services/api.ts          ← Axios client: calculateEngine(), calculateEnvelope(), getDefaults()
-    ├── themes/                  ← Palette CSS files — see CLAUDE-STYLE.md
+    ├── themes/palette-blueprint.css  ← Single active colour palette (all --app-* CSS variables)
     └── components/
         ├── shared/              ← Reusable UI primitives: FieldLabel, NumberInput, SectionHeader (import from here, not inline)
         ├── EngineConfig.tsx     ← Architecture, pressure ratios, TIT, efficiencies, mass flow
@@ -63,7 +63,7 @@ jet-engine-designer/
 | `cycle_engine` | `calculate_engine(request)` | Full Brayton cycle → EngineResults |
 | `cycle_engine` | `calculate_envelope(request)` | Speed + altitude + throttle sweeps → EnvelopeResults. Mass flow scaled by intake stagnation density ratio relative to design point. Speed/altitude sweep calls pass `auto_size_mass_flow=False` so plots show available thrust, not required thrust. |
 
-**Constants:** γ = 1.4, cp = 1005 J/(kg·K), R = 287.058 J/(kg·K), LHV (Jet-A) = 43.2 MJ/kg, axial PR/stage = 1.3
+**Constants:** γ_c = 1.4, cp_c = 1005 J/(kg·K) (cold: compressor/fan/intake) · γ_t = 1.33, cp_t = 1148 J/(kg·K) (hot: turbine/nozzle) · R = 287.058 J/(kg·K) · LHV (Jet-A) = 43.2 MJ/kg (representative typical; ASTM D1655 min 42.8 MJ/kg) · axial PR/stage = 1.3
 
 ---
 
@@ -116,24 +116,24 @@ Tab order: 'learn' (default) → 'design' → 'results' → 'envelope' → 'work
 
 **EngineLayout:** Engine section flow diagram (coloured blocks + arrows). Redundant colour-swatch legend below the blocks was removed — the blocks are self-labelled.
 
-**ResultsPanel order:** Errors/Warnings → Performance Summary → Estimated Geometry → Compressor Stage Counts → Combustion Headroom → Station States → Nozzle Exit → Model Assumptions (collapsible) → Literature & References (collapsible)
+**ResultsPanel order:** Errors/Warnings → Performance Summary → Estimated Geometry → Compressor Stage Counts → Combustion Headroom → Station States → Nozzle Exit
 
-**WorkflowSection:** Collapsible step cards (01–08), each with Inputs / Equations / Outputs columns in a `1fr 2.5fr 1fr` grid. Equations column is wide enough to prevent line-wrapping; uses `overflow-x-auto` + `whitespace-nowrap` as fallback. Each equation has a label and a "Where" symbol glossary below it. Global expand/collapse button in header. Collapsible Constants & Assumptions panel at the bottom.
+**WorkflowSection:** Collapsible step cards (01–08), each with Inputs / Equations / Outputs columns in a `1fr 2.5fr 1fr` grid. Equations column is wide enough to prevent line-wrapping; uses `overflow-x-auto` + `whitespace-nowrap` as fallback. Each equation has a label and a "Where" symbol glossary below it. Global expand/collapse button in header. Collapsible Constants & Assumptions panel at the bottom — this is the single authoritative location for model assumptions.
 
 **PlotsPanel:** `SinglePlot` accepts `designX` prop to render a white design-point dot. Throttle plots now receive `designThrottle = throttle_fraction × 100` from `App.tsx`. TIT Utilisation vs Speed plot was removed.
 
-**HelpSection order:** How Does a Jet Engine Work? → Brayton Cycle (4-card) → Turbofan vs Turbojet → Key Parameters → Further Reading (free resources / textbooks / standards)
+**HelpSection order:** How Does a Jet Engine Work? → Brayton Cycle (4-card) → Turbofan vs Turbojet → Key Parameters → Further Reading (free resources / textbooks)
 
 ---
 
 ## Physics formulas
 
 ```
-Intake:     Tt2 = T_amb·(1+(γ-1)/2·M²)    pt2 = p_amb·(Tt2/T_amb)^(γ/(γ-1))
-Compressor: Tt_out = Tt_in·[1+(PR^((γ-1)/γ)−1)/η_c]
-Combustor:  ṁ_f·LHV·η_b = ṁ_core·cp·(Tt4−Tt3)
-Turbine:    pt_out = pt_in·[1−(Tt_in−Tt_out)/(η_t·Tt_in)]^(γ/(γ-1))
-Nozzle:     critical PR = ((γ+1)/2)^(γ/(γ-1)) ≈ 1.893
+Intake:     Tt2 = T_amb·(1+(γ_c-1)/2·M²)    pt2 = p_amb·(Tt2/T_amb)^(γ_c/(γ_c-1))
+Compressor: Tt_out = Tt_in·[1+(PR^((γ_c-1)/γ_c)−1)/η_c]
+Combustor:  ṁ_f = ṁ_core·(cp_t·Tt4 − cp_c·Tt3) / (η_b·LHV)   ← calorically split
+Turbine:    pt_out = pt_in·[1−(Tt_in−Tt_out)/(η_t·Tt_in)]^(γ_t/(γ_t-1))
+Nozzle:     critical PR = ((γ+1)/2)^(γ/(γ-1))  core≈1.852 (γ_t=1.33), bypass≈1.893 (γ_c=1.4)
 ```
 
 **TSFC display:** API returns `tsfc_kg_n_h` [kg/(N·h)]. Display as mg/(N·s): multiply by `1e6 / 3600`.
@@ -159,15 +159,17 @@ Nozzle:     critical PR = ((γ+1)/2)^(γ/(γ-1)) ≈ 1.893
 
 ---
 
-## Model assumptions (shown to users — do not silently change)
+## Model assumptions (canonical list in WorkflowSection.tsx ASSUMPTIONS array — do not silently change)
 
-Ideal gas γ=1.4, cp=1005 J/(kg·K) · Isentropic intake · No combustor pressure loss · No turbine cooling air · Converging nozzle only · 100% shaft mechanical efficiency · No duct pressure losses
+Calorically split ideal gas (γ_c=1.4/cp_c=1005 cold, γ_t=1.33/cp_t=1148 hot) · Isentropic intake · No combustor pressure loss · No turbine cooling air · Converging nozzle only · 100% shaft mechanical efficiency · No duct pressure losses · Fuel mass fraction added to core flow
 
 ---
 
 ## Styling & theming
 
-> For colour tokens, palette files, design token groups, Tailwind conventions, and theming instructions, see **[CLAUDE-STYLE.md](CLAUDE-STYLE.md)**.
+Single palette file: `frontend/src/themes/palette-blueprint.css`. Imported once in `main.tsx`. All colour tokens are `--app-*` CSS variables mapped to Tailwind via `tailwind.config.js`. To retheme, edit the CSS variable values in `palette-blueprint.css` — do not create additional palette files.
+
+> For full token reference and Tailwind conventions, see **[CLAUDE-STYLE.md](CLAUDE-STYLE.md)**.
 
 ---
 

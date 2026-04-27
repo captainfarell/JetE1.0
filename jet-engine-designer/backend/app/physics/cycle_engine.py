@@ -122,24 +122,6 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
     errors:      list[str] = []
     warnings:    list[str] = []
     t = request.throttle_fraction
-    assumptions: list[str] = [
-        "Calorically split ideal gas: γ = 1.4, cp = 1005 J/(kg·K) for compressor/fan/intake (cold air); γ = 1.33, cp = 1148 J/(kg·K) for turbine/nozzle (hot combustion gas)",
-        "Isentropic intake (no pressure loss)",
-        "No combustor pressure loss assumed",
-        "No turbine cooling air modeled",
-        "Fuel: Jet-A with LHV = 43.2 MJ/kg",
-        "Converging nozzle (no diverging section for supersonic expansion)",
-        "Shaft mechanical efficiency = 100%",
-        "No duct pressure losses",
-        "Fuel mass fraction added to core flow (small, usually <3%)",
-        f"Compressor isentropic efficiency η_c = {request.eta_compressor:.2f}",
-        f"Turbine isentropic efficiency η_t = {request.eta_turbine:.2f}",
-        f"Combustor efficiency η_b = {request.eta_combustor:.3f}",
-        f"Fan isentropic efficiency η_f = {request.fan_efficiency:.2f}",
-        f"Engine operating at {t*100:.0f}% throttle — TIT = {t * request.tit_max_k:.0f} K (max {request.tit_max_k:.0f} K), "
-        f"effective OPR = {1.0 + (request.overall_pressure_ratio - 1.0) * t**0.5:.1f} (max {request.overall_pressure_ratio:.1f}). "
-        f"OPR uses √throttle scaling (compressor off-design); TIT is linear.",
-    ]
 
     # ── Input Validation ──────────────────────────────────────────────────────
     if request.ambient_temperature_override_k is not None and request.ambient_temperature_override_k <= 0:
@@ -274,7 +256,7 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
             tit_fraction=0.0, propulsive_efficiency=0.0,
             thermal_efficiency=0.0, overall_efficiency=0.0,
             operating_throttle=t,
-            errors=errors, warnings=warnings, assumptions=assumptions,
+            errors=errors, warnings=warnings,
         )
 
     if errors:
@@ -660,7 +642,6 @@ def calculate_engine(request: CalculateRequest) -> EngineResults:
         operating_throttle=round(t, 4),
         errors=errors,
         warnings=warnings,
-        assumptions=assumptions,
     )
 
 

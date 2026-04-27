@@ -96,12 +96,3 @@ export async function getDefaults(
     onStatus,
   );
 }
-
-export async function healthCheck(): Promise<boolean> {
-  try {
-    await client.get('/health');
-    return true;
-  } catch {
-    return false;
-  }
-}

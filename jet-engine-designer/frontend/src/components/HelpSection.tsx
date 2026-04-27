@@ -171,16 +171,37 @@ export default function HelpSection() {
               https://www.grc.nasa.gov/www/k-12/airplane/turbine.html
             </div>
             <p className="text-xs text-app-secondary mt-1">
-              Free web resource covering Brayton cycle, compressors, turbines, thrust, and TSFC with interactive animations.
+              Covers the Brayton cycle, compressor and turbine work equations, isentropic intake relations, thrust equation, and TSFC — the foundational theory behind all calculations in this app. Includes interactive animations.
             </p>
           </div>
           <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
-            <div className="text-sm font-semibold text-app-text mb-1">NIST Chemistry WebBook</div>
+            <div className="text-sm font-semibold text-app-text mb-1">NOAA/NASA/USAF — U.S. Standard Atmosphere, 1976</div>
             <div className="text-xs text-app-secondary font-mono">
-              https://webbook.nist.gov
+              https://ntrs.nasa.gov/citations/19770009539
             </div>
+            <div className="text-xs text-app-secondary mt-0.5">NASA Technical Reports Server, NTRS ID 19770009539</div>
             <p className="text-xs text-app-secondary mt-1">
-              Free database of thermodynamic properties for aviation fuels and other substances.
+              Defines ISA temperature lapse rates (−6.5 K/km troposphere, isothermal stratosphere), tropopause at 11 000 m, and sea-level reference conditions. Implemented in atmosphere.py.
+            </p>
+          </div>
+          <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+            <div className="text-sm font-semibold text-app-text mb-1">NACA Report 1135 — Equations, Tables, and Charts for Compressible Flow</div>
+            <div className="text-xs text-app-secondary font-mono">
+              https://ntrs.nasa.gov/search?q=NACA+1135
+            </div>
+            <div className="text-xs text-app-secondary mt-0.5">NASA Technical Reports Server, free</div>
+            <p className="text-xs text-app-secondary mt-1">
+              Canonical reference for isentropic flow relations (γ = 1.4) used in nozzle choking conditions, critical pressure ratio, and intake stagnation quantities.
+            </p>
+          </div>
+          <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
+            <div className="text-sm font-semibold text-app-text mb-1">NASA SP-36 — Aerodynamic Design of Axial-Flow Compressors</div>
+            <div className="text-xs text-app-secondary font-mono">
+              https://ntrs.nasa.gov/search?q=NASA+SP-36
+            </div>
+            <div className="text-xs text-app-secondary mt-0.5">NASA Technical Reports Server, free</div>
+            <p className="text-xs text-app-secondary mt-1">
+              Basis for per-stage axial compressor pressure ratio assumptions (PR ≈ 1.3 per stage) and stage-count to OPR mapping used in geometry estimation.
             </p>
           </div>
           <div className="bg-app-muted/30 border border-app-border rounded-lg p-3">
@@ -226,32 +247,6 @@ export default function HelpSection() {
           ))}
         </div>
 
-        <p className="text-xs text-app-secondary mb-3 uppercase tracking-wider font-semibold">Standards (purchase required)</p>
-        <div className="space-y-2">
-          {[
-            {
-              title: 'SAE ARP755 — Gas Turbine Engine Performance Station Identification and Nomenclature',
-              detail: 'SAE International, current revision',
-              note: 'Defines the station numbering convention (0, 2, 21, 25, 3, 4, 45, 5, 55, 9, 19) used throughout this app.',
-            },
-            {
-              title: 'ISO 2533:1975 — Standard Atmosphere',
-              detail: 'International Organisation for Standardisation, 1975',
-              note: 'International Standard Atmosphere temperature lapse rates and reference conditions implemented in the atmosphere model.',
-            },
-            {
-              title: 'ASTM D1655 — Standard Specification for Aviation Turbine Fuels',
-              detail: 'ASTM International, current revision',
-              note: 'Basis for Jet-A fuel specification; LHV = 43.2 MJ/kg used in the combustor energy balance.',
-            },
-          ].map(({ title, detail, note }) => (
-            <div key={title} className="bg-app-muted/30 border border-app-border rounded-lg p-3">
-              <div className="text-sm font-semibold text-app-text mb-0.5">{title}</div>
-              <div className="text-xs text-app-secondary font-mono mb-1">{detail}</div>
-              <p className="text-xs text-app-secondary">{note}</p>
-            </div>
-          ))}
-        </div>
       </section>
     </div>
   );

@@ -492,7 +492,7 @@ const CONSTANTS = [
   { sym: 'cp_c',     val: '1005 J/(kg·K)',     desc: 'Specific heat at constant pressure — cold air side' },
   { sym: 'cp_t',     val: '1148 J/(kg·K)',     desc: 'Specific heat at constant pressure — hot gas side' },
   { sym: 'R',        val: '287.058 J/(kg·K)',  desc: 'Specific gas constant for air (= cp − cv)' },
-  { sym: 'LHV',      val: '43.2 MJ/kg',        desc: 'Lower heating value of Jet-A fuel' },
+  { sym: 'LHV',      val: '43.2 MJ/kg',        desc: 'Lower heating value of Jet-A fuel; representative typical value (ASTM D1655 minimum: 42.8 MJ/kg)' },
   { sym: 'ΔPR/stage', val: '1.3',             desc: 'Axial compressor PR per stage — used only for stage count estimate' },
 ];
 
@@ -501,6 +501,7 @@ const ASSUMPTIONS = [
   'Isentropic intake — no shock losses or wall friction',
   'No combustor total pressure loss (pt4 = pt3)',
   'No turbine cooling air (full core mass flow through turbine)',
+  'Fuel: Jet-A, LHV = 43.2 MJ/kg — representative typical value; ASTM D1655 mandates a minimum of 42.8 MJ/kg',
   'Converging-only nozzle — no supersonic expansion (no de Laval geometry)',
   '100% shaft mechanical efficiency — all turbine work reaches compressor / fan',
   'No duct pressure losses between stages',

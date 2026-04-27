@@ -107,7 +107,6 @@ export interface EngineResults {
   overall_efficiency: number;
   errors: string[];
   warnings: string[];
-  assumptions: string[];
 }
 
 export interface PlotSeries {
