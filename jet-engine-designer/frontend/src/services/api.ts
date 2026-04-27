@@ -18,7 +18,7 @@ const client = axios.create({
 function formatError(err: unknown): string {
   if (err instanceof AxiosError) {
     if (!err.response) {
-      return 'Cannot connect to the backend server. Make sure it is running on port 8000.';
+      return `Cannot reach the backend server (${BASE_URL}). In production, check that VITE_API_URL is set correctly on Vercel. Locally, make sure the backend is running on port 8000.`;
     }
     const detail = err.response.data?.detail;
     if (typeof detail === 'string') return detail;
